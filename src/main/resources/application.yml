@@ -1,0 +1,23 @@
+server:
+  port: 8081
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/uplp
+    password: root
+    username: admin
+  liquibase:
+    enabled: true
+    url: jdbc:postgresql://localhost:5432/uplp
+    password: root
+    user: admin
+    default-schema: public
+    liquibase-schema: public
+    change-log: classpath*:db.changelog/master.xml
+  jpa:
+    properties:
+      hibernate:
+        enable_lazy_load_no_trans: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
