@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "Документы ГПЗУ", description = "Взаимодействие с документами ГПЗУ")
 @RestController
@@ -20,6 +21,13 @@ import java.util.List;
 public class UplpDocController {
 
     private final UplpDocService uplpDocService;
+
+    //TODO Результаты автоматической обработки должны включать в себя лог-файл с
+    //TODO перечнем успешно распознанных электронных образов ГПЗУ и произошедших
+    //TODO ошибок с описанием ошибок, а также оцифрованные данные в формате xls, csv и json
+    //TODO или xml
+    //TODO Для одного и нескольких файлов (для файлов, загруженных в последний раз пользователем):
+    //TODO getUplpDocByIdLikeXml, getUplpDocByIdLikeXls, getUplpDocByIdLikeCsv, getUplpDocByIdLikeJson
 
     @GetMapping("/{id}")
     @Operation(summary = "Получение документа ГПЗУ по ИД")
@@ -35,11 +43,14 @@ public class UplpDocController {
 
     @PostMapping
     @Operation(summary = "Создание документа(ов) ГПЗУ из ПДФ файла")
-    public ResponseEntity<UplpDoc> createUplpDoc(
-            @Parameter(description = "Загружаемый файл", required = true) @RequestParam("file") List<MultipartFile> files,
+    public ResponseEntity<Map<String, UplpDoc>> createUplpDoc(
+            @Parameter(description = "Загружаемые файлы", required = true) @RequestParam("file") List<MultipartFile> files,
             @Parameter(description = "Тип документа") @RequestParam(name = "docType") String docType
     ) {
-        UplpDoc doc = uplpDocService.createUplpDoc(files, docType);
+        if (files.size() > 1000) {
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).build();
+        }
+        Map<String, UplpDoc> doc = uplpDocService.createUplpDocs(files, docType);
         if (doc != null) {
             return ResponseEntity.ok(doc);
         }
