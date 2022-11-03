@@ -113,63 +113,63 @@ comment on column uplp_doc.subzones_availability is
 comment on column uplp_doc.subzones_area is
     'Площади подзон ЗУ, кв.м';
 comment on column uplp_doc.building_max_height is
-    'Высота застройки, м';
+    'Максимальная высота застройки, м';
 comment on column uplp_doc.building_max_floors is
-    'Количество этажей, шт';
+    'Максимальное количество этажей, шт';
 comment on column uplp_doc.built_up_area_percentage is
-    'Процент застроенности, %';
+    'Максимальный процент застроенности, %';
 comment on column uplp_doc.building_density is
-    'Плотность застройки, тыс. кв.м/га';
+    'Максимальная плотность застройки, тыс. кв.м/га';
 comment on column uplp_doc.cbo_purpose is
-    'Назначение ОКС';
+    'Назначение объектов капитального строительства (ОКС)';
 comment on column uplp_doc.cbo_description is
     'Наименование, описание ОКС';
 comment on column uplp_doc.objects_not_under_construction_standarts is
     'Наличие объектов, на которые действие градостроительного регламента не распространяется или не устанавливается';
 comment on column uplp_doc.total_floor_area is
-    'Всего';
+    'Общая суммарная поэтажная площадь строящихся ОКС, кв.м';
 comment on column uplp_doc.residential_development_floor_area is
-    'Жилой застройки';
+    'Суммарная поэтажная площадь строящихся объектов жилой застройки, кв.м';
 comment on column uplp_doc.non_residential_development_floor_area is
-    'Нежилой застройки';
+    'Суммарная поэтажная площадь строящихся объектов нежилой застройки, кв.м';
 comment on column uplp_doc.residential_premises_floor_area is
-    'Жилых помещений';
+    'Суммарная поэтажная площадь строящихся жилых помещений, кв.м';
 comment on column uplp_doc.non_residential_premises_floor_area is
-    'Встроенно-пристроенных, отдельно стоящих нежилых помещений';
+    'Суммарная поэтажная площадь строящихся встроенно-пристроенных, отдельно стоящих нежилых помещений, кв.м';
 comment on column uplp_doc.total_building_area is
-    'Всего';
+    'Общая площадь строящихся ОКС, кв.м';
 comment on column uplp_doc.total_residential_development_area is
-    'Жилой застройки';
+    'Общая площадь строящихся объектов жилой застройки, кв.м';
 comment on column uplp_doc.total_non_residential_development_area is
-    'Нежилой застройки';
+    'Общая площадь строящихся объектов нежилой застройки, кв.м';
 comment on column uplp_doc.total_residential_premises_area is
-    'Жилых помещений';
+    'Общая площадь строящихся жилых помещений, кв.м';
 comment on column uplp_doc.total_non_residential_premises_area is
-    'Встроенно-пристроенных, отдельно стоящих нежилых помещений';
+    'Общая площадь строящихся встроенно-пристроенных, отдельно стоящих нежилых помещений, кв.м';
 comment on column uplp_doc.total_underground_space_area is
-    'Подземного пространства';
+    'Общая площадь подземного пространства, кв.м';
 comment on column uplp_doc.subzones_total_floor_area is
-    'Всех объектов';
+    'Общая суммарная поэтажная площадь строящихся ОКС по всем подзонам, кв.м';
 comment on column uplp_doc.subzones_residential_objects_floor_area is
-    'Жилых объектов';
+    'Общая суммарная поэтажная площадь строящихся жилых объектов по всем подзонам, кв.м';
 comment on column uplp_doc.subzones_non_residential_objects_floor_area is
-    'Нежилых объектов';
+    'Общая суммарная поэтажная площадь строящихся нежилых объектов по всем подзонам, кв.м';
 comment on column uplp_doc.subzones_residential_premises_floor_area is
-    'Жилых помещений';
+    'Общая суммарная поэтажная площадь строящихся жилых помещений по всем подзонам, кв.м';
 comment on column uplp_doc.subzones_non_residential_premises_floor_area is
-    'Встроенно-пристроенных, отдельно стоящих нежилых помещений';
+    'Общая суммарная поэтажная площадь строящихся встроенно-пристроенных, отдельно стоящих нежилых помещений по всем подзонам, кв.м';
 comment on column uplp_doc.subzones_total_objects_area is
-    'Всех объектов';
+    'Общая площадь строящихся ОКС по всем подзонам, кв.м';
 comment on column uplp_doc.subzones_total_residential_objects_area is
-    'Жилых объектов';
+    'Общая площадь строящихся жилых объектов по всем подзонам, кв.м';
 comment on column uplp_doc.subzones_total_non_residential_objects_area is
-    'Нежилых объектов';
+    'Общая площадь строящихся нежилых объектов по всем подзонам, кв.м';
 comment on column uplp_doc.subzones_total_residential_premises_area is
-    'Жилых помещений';
+    'Общая площадь строящихся жилых помещений по всем подзонам, кв.м';
 comment on column uplp_doc.subzones_total_non_residential_premises_area is
-    'Встроенно-пристроенных, отдельно стоящих нежилых помещений';
+    'Общая площадь строящихся встроенно-пристроенных, отдельно стоящих нежилых помещений по всем подзонам, кв.м';
 comment on column uplp_doc.subzones_total_underground_space_area is
-    'Подземного пространства';
+    'Общая площадь поздемного пространства по всем подзонам, кв.м';
 comment on column uplp_doc.existing_cbo_availability is
     'Наличие или отсутствие существующих на ЗУ ОКС';
 comment on column uplp_doc.existing_cbo_total_count is

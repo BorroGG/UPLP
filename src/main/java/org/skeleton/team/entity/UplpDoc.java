@@ -102,23 +102,23 @@ public class UplpDoc {
     @Column(name = "subzones_area")
     private Integer subzonesArea;
 
-    @Schema(description = "Высота застройки, м")
+    @Schema(description = "Максимальная высота застройки, м")
     @Column(name = "building_max_height")
     private String buildingMaxHeight;
 
-    @Schema(description = "Количество этажей, шт")
+    @Schema(description = "Максимальное количество этажей, шт")
     @Column(name = "building_max_floors")
     private Integer buildingMaxFloors;
 
-    @Schema(description = "Процент застроенности, %")
+    @Schema(description = "Максимальный процент застроенности, %")
     @Column(name = "built_up_area_percentage")
     private String builtUpAreaPercentage;
 
-    @Schema(description = "Плотность застройки, тыс. кв.м/га")
+    @Schema(description = "Максимальная плотность застройки, тыс. кв.м/га")
     @Column(name = "building_density")
     private String buildingDensity;
 
-    @Schema(description = "Назначение ОКС")
+    @Schema(description = "Назначение объектов капитального строительства (ОКС)")
     @Column(name = "cbo_purpose")
     private String cboPurpose;
 
@@ -130,91 +130,91 @@ public class UplpDoc {
     @Column(name = "objects_not_under_construction_standarts")
     private String objectsNotUnderConstructionStandarts;
 
-    @Schema(description = "Всего")
+    @Schema(description = "Общая суммарная поэтажная площадь строящихся ОКС, кв.м")
     @Column(name = "total_floor_area")
     private BigDecimal totalFloorArea;
 
-    @Schema(description = "Жилой застройки")
+    @Schema(description = "Суммарная поэтажная площадь строящихся объектов жилой застройки, кв.м")
     @Column(name = "residential_development_floor_area")
     private BigDecimal residentialDevelopmentFloorArea;
 
-    @Schema(description = "Нежилой застройки")
+    @Schema(description = "Суммарная поэтажная площадь строящихся объектов нежилой застройки, кв.м")
     @Column(name = "non_residential_development_floor_area")
     private BigDecimal nonResidentialDevelopmentFloorArea;
 
-    @Schema(description = "Жилых помещений")
+    @Schema(description = "Суммарная поэтажная площадь строящихся жилых помещений, кв.м")
     @Column(name = "residential_premises_floor_area")
     private BigDecimal residentialPremisesFloorArea;
 
-    @Schema(description = "Встроенно-пристроенных, отдельно стоящих нежилых помещений")
+    @Schema(description = "Суммарная поэтажная площадь строящихся встроенно-пристроенных, отдельно стоящих нежилых помещений, кв.м")
     @Column(name = "non_residential_premises_floor_area")
     private BigDecimal nonResidentialPremisesFloorArea;
 
-    @Schema(description = "Всего")
+    @Schema(description = "Общая площадь строящихся ОКС, кв.м")
     @Column(name = "total_building_area")
     private BigDecimal totalBuildingArea;
 
-    @Schema(description = "Жилой застройки")
+    @Schema(description = "Общая площадь строящихся объектов жилой застройки, кв.м")
     @Column(name = "total_residential_development_area")
     private BigDecimal totalResidentialDevelopmentArea;
 
-    @Schema(description = "Нежилой застройки")
+    @Schema(description = "Общая площадь строящихся объектов нежилой застройки, кв.м")
     @Column(name = "total_non_residential_development_area")
     private BigDecimal totalNonResidentialDevelopmentArea;
 
-    @Schema(description = "Жилых помещений")
+    @Schema(description = "Общая площадь строящихся жилых помещений, кв.м")
     @Column(name = "total_residential_premises_area")
     private BigDecimal totalResidentialPremisesArea;
 
-    @Schema(description = "Встроенно-пристроенных, отдельно стоящих нежилых помещений")
+    @Schema(description = "Общая площадь строящихся встроенно-пристроенных, отдельно стоящих нежилых помещений, кв.м")
     @Column(name = "total_non_residential_premises_area")
     private BigDecimal totalNonResidentialPremisesArea;
 
-    @Schema(description = "Подземного пространства")
+    @Schema(description = "Общая площадь подземного пространства, кв.м")
     @Column(name = "total_underground_space_area")
     private BigDecimal totalUndergroundSpaceArea;
 
-    @Schema(description = "Всех объектов")
+    @Schema(description = "Общая суммарная поэтажная площадь строящихся ОКС по всем подзонам, кв.м")
     @Column(name = "subzones_total_floor_area")
     private BigDecimal subzonesTotalFloorArea;
 
-    @Schema(description = "Жилых объектов")
+    @Schema(description = "Общая суммарная поэтажная площадь строящихся жилых объектов по всем подзонам, кв.м")
     @Column(name = "subzones_residential_objects_floor_area")
     private BigDecimal subzonesResidentialObjectsFloorArea;
 
-    @Schema(description = "Нежилых объектов")
+    @Schema(description = "Общая суммарная поэтажная площадь строящихся нежилых объектов по всем подзонам, кв.м")
     @Column(name = "subzones_non_residential_objects_floor_area")
     private BigDecimal subzonesNonResidentialObjectsFloorArea;
 
-    @Schema(description = "Жилых помещений")
+    @Schema(description = "Общая суммарная поэтажная площадь строящихся жилых помещений по всем подзонам, кв.м")
     @Column(name = "subzones_residential_premises_floor_area")
     private BigDecimal subzonesResidentialPremisesFloorArea;
 
-    @Schema(description = "Встроенно-пристроенных, отдельно стоящих нежилых помещений")
+    @Schema(description = "Общая суммарная поэтажная площадь строящихся встроенно-пристроенных, отдельно стоящих нежилых помещений по всем подзонам, кв.м")
     @Column(name = "subzones_non_residential_premises_floor_area")
     private BigDecimal subzonesNonResidentialPremisesFloorArea;
 
-    @Schema(description = "Всех объектов")
+    @Schema(description = "Общая площадь строящихся ОКС по всем подзонам, кв.м")
     @Column(name = "subzones_total_objects_area")
     private BigDecimal subzonesTotalObjectsArea;
 
-    @Schema(description = "Жилых объектов")
+    @Schema(description = "Общая площадь строящихся жилых объектов по всем подзонам, кв.м")
     @Column(name = "subzones_total_residential_objects_area")
     private BigDecimal subzonesTotalResidentialObjectsArea;
 
-    @Schema(description = "Нежилых объектов")
+    @Schema(description = "Общая площадь строящихся нежилых объектов по всем подзонам, кв.м")
     @Column(name = "subzones_total_non_residential_objects_area")
     private BigDecimal subzonesTotalNonResidentialObjectsArea;
 
-    @Schema(description = "Жилых помещений")
+    @Schema(description = "Общая площадь строящихся жилых помещений по всем подзонам, кв.м")
     @Column(name = "subzones_total_residential_premises_area")
     private BigDecimal subzonesTotalResidentialPremisesArea;
 
-    @Schema(description = "Встроенно-пристроенных, отдельно стоящих нежилых помещений")
+    @Schema(description = "Общая площадь строящихся встроенно-пристроенных, отдельно стоящих нежилых помещений по всем подзонам, кв.м")
     @Column(name = "subzones_total_non_residential_premises_area")
     private BigDecimal subzonesTotalNonResidentialPremisesArea;
 
-    @Schema(description = "Подземного пространства")
+    @Schema(description = "Общая площадь поздемного пространства по всем подзонам, кв.м")
     @Column(name = "subzones_total_underground_space_area")
     private BigDecimal subzonesTotalUndergroundSpaceArea;
 
