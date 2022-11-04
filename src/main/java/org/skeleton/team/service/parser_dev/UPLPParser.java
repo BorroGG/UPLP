@@ -24,13 +24,33 @@ public class UPLPParser {
     private static final String ISSUE_DATE_ACTUAL = "Действует";
     private static final String ISSUE_DATE_EXPIRED = "Срок действия истёк";
     private static final String SECRET = "Секретно";
+    public static final String SUT_NOT_LIVING = "Не жилая";
+    public static final String SUT_MIXED = "Смешанная";
+    public static final String SUT_LIVING = "Жилая";
 
     private static UplpDoc uplpDoc;
 
     public static void main(String[] args) throws IOException {
 
-        File file = new File("RU77101000-041075-GPZU.pdf");
+        File file = new File("RU77106000-043720-GPZU.pdf");
 
+        parsingUPLPFile(file);
+
+/*
+        File file = new File(".");
+
+        for(String uplp : file.list()){
+            if(uplp.endsWith(".pdf")) {
+                File uplpFile = new File(uplp);
+                parsingUPLPFile(uplpFile);
+            }
+        }
+*/
+
+
+    }
+
+    private static void parsingUPLPFile(File file) throws IOException {
         String parsedText;
 
         PDFParser parser = new PDFParser(new RandomAccessFile(file, "r"));
@@ -42,11 +62,7 @@ public class UPLPParser {
         PDDocument pdDoc = new PDDocument(cosDoc);
         parsedText = pdfStripper.getText(pdDoc);
 
-        //PrintWriter pw = new PrintWriter("pdf.txt");
-        //pw.print(parsedText);
-        //pw.close();
-
-        String[] words = parsedText.split("\n");
+        String[] words = parsedText.split("\n|\r\n");
 
         uplpDoc = new UplpDoc();
 
@@ -73,18 +89,64 @@ public class UPLPParser {
 
         //TODO парсинг Реквизиты межевания
 
-        words = parsedText.split(" ");
+        String codesVRI = parseSutCodes(parsedText);
+
+        uplpDoc.setSutCodes(codesVRI);
 
         for(String word : words){
-            //System.out.println(word);
-            if(word.matches("\\(\\d{1}+.\\d{1}\\)\n")
-                    || word.matches("\\(\\d.\\d.\\d\\)")){
-                System.out.println(word + " is matched");
-            }
-            if(word.matches("\\(\\d.\\d.\\d\\)\n.+")){
-                System.out.println(word.split("\n")[0]);
+            if(word.matches("\\d+ ± \\d.+|\\d+. кв.м")){
+                String plotArea = word.split(" ")[0];
+                System.out.println(plotArea);
+                uplpDoc.setPlotArea(Integer.parseInt(plotArea));
             }
         }
+
+        String subzones = "";
+
+        String areaSquare = "";
+
+        String metrics = "";
+
+        for(String word : words){
+            if (word.matches("Подзона №.\\d+.+")){
+                subzones +=
+                        (subzones.length() > 0 ? "\n" : "")+
+                        "№ "+word.split(" ")[2];
+                areaSquare = word.split(" на чертеже ")[1];
+                System.out.println(word);
+
+                metrics = areaSquare.split(" ")[1];
+
+                metrics = metrics.substring(0, metrics.length()-2);
+
+                System.out.println(metrics);
+
+                areaSquare = areaSquare.split(" ")[0].replace('(',' ').strip();
+
+                float area = 0f;
+
+                switch (metrics.toLowerCase()){
+                    case "га":{
+                        area = Float.parseFloat(areaSquare) * 10000;
+                        uplpDoc.setSubzonesArea((int) area);
+                        break;
+                    }
+                    case "кв.м":{
+                        uplpDoc.setSubzonesArea(Integer.parseInt(areaSquare));
+                        break;
+                    }
+                }
+
+                System.out.println(""+area);
+
+                System.out.println(areaSquare);
+            }
+        }
+      if(subzones.equals("")){
+            subzones = "нет";
+        }
+
+        uplpDoc.setSubzonesAvailability(subzones);
 
         /*for(String word : words){
             if(word.startsWith("г. Москва")){
@@ -98,7 +160,61 @@ public class UPLPParser {
         System.out.println();
 
         System.out.println(uplpDoc.toString());
+    }
 
+    private static String parseSutCodes(String parsedText) {
+        String[] words;
+        words = parsedText.split(" ");
+
+        String codeVRI = "";
+
+        String codesVRI = "";
+
+        for(String word : words){
+            //System.out.println(word);
+            if(word.matches("\\d.\\d.\\d+,")
+                    || word.matches("\\(\\d.\\d.\\d\\)")){
+                System.out.println(word.split(",")[0] + " is matched");
+                codesVRI += (codesVRI.length() > 0 ? " " : "") + word.split(",")[0].strip() + ";";
+            }
+            if(word.matches("\\(\\d.\\d.\\d\\)\r\n.+|\\(\\d.\\d.\\d\\)\n.+")){
+                codeVRI = word.split("\n")[0].trim().strip();
+                codesVRI += (codesVRI.length() > 0 ? " " : "") +
+                            codeVRI
+                            .replace('(',' ')
+                            .replace(')',' ')
+                            .strip() + ";";
+                System.out.println(codeVRI);
+                System.out.println(codesVRI);
+            }
+            if(word.matches("Действие градостроительного регламента не распространяется")){
+                codesVRI = word;
+                break;
+            }
+        }
+
+        uplpDoc.setSutGroupName(checkLivingPlace(codesVRI));
+
+        return codesVRI.substring(0, codesVRI.length()-1);
+    }
+
+    private static String checkLivingPlace(String codesVRI) {
+
+        String sutStatus = "";
+
+        for(String code : codesVRI.split("; |;")){
+            if(sutStatus.equals(SUT_MIXED)){
+                break;
+            }
+            if(code.matches("2\\.\\d|2.[0-7].\\d|13.2")){
+                sutStatus = sutStatus.equals(SUT_NOT_LIVING) ? SUT_MIXED : SUT_LIVING;
+                System.out.println(sutStatus);
+            } else {
+                sutStatus = sutStatus.equals(SUT_LIVING) ? SUT_MIXED : SUT_NOT_LIVING;
+                System.out.println(sutStatus);
+            }
+        }
+        return sutStatus;
     }
 
     private static String parseAvailability(String[] words) {
@@ -116,7 +232,7 @@ public class UPLPParser {
             }
         }
 
-        availability = (availability.split(". |, | ").length > 0 ? availability.split(". |, | ")[0] : availability);
+        availability = (availability.split("\\. |, ").length > 0 ? availability.split("\\. |, ")[0] : availability);
 
         System.out.println(availability);
         return availability;
@@ -126,7 +242,7 @@ public class UPLPParser {
         for(String word : words){//77:06:0003002:70 //02/01/10179
             if(word.matches("\\d{2}:\\d{2}:\\d{7}:\\d+")
                     || word.matches("\\d{2}/\\d{2}/\\d{5}")
-                || word.startsWith("участок")){
+                || word.matches("участок №\\d+|участок \\d+")){
                 System.out.println(word);
                 uplpDoc.setCadastralNo(word);
                 break;
@@ -173,7 +289,7 @@ public class UPLPParser {
                 continue;
             }
 
-            if (word.matches("Дата выдачи \\d{2}.\\d{2}.\\d{4}")) {
+            if (word.matches("Дата выдачи (\\d{2}.\\d{2}.\\d{4})|(\\d{2}.\\d{2}.\\d{4}\r)")) {
 
                 System.out.println(word);
 
@@ -215,7 +331,7 @@ public class UPLPParser {
         SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
 
         try {
-            return formatter.parse(word);
+            return formatter.parse(word.split(" ")[2]);
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -298,9 +414,14 @@ public class UPLPParser {
     }
 
     private static String checkRecipientType(String recipient){
+        recipient = recipient.toLowerCase();
             if(recipient.contains("фонд") ||
+                    recipient.contains("фонда") ||
                 recipient.contains("общество") ||
+                    recipient.contains("общества") ||
                 recipient.contains("государственное") ||
+                recipient.contains("муниципальное") ||
+                    recipient.contains("департамента")||
                 recipient.contains("организации")){
                 return "ЮЛ";
             } else {
@@ -309,10 +430,11 @@ public class UPLPParser {
     }
 
     private static boolean checkRegion(String s){
-        return !s.startsWith("ул.")
+        return !(s.startsWith("ул.")|| s.endsWith(" ул."))
                 && !s.startsWith("проезд")
                 && !s.startsWith("посёлок")
                 && !s.startsWith("шоссе")
-                && !s.startsWith("проспект");
+                && !s.startsWith("проспект")
+                && !s.startsWith("наб.");
     }
 }

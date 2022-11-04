@@ -2,6 +2,7 @@ package org.skeleton.team.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -329,6 +330,8 @@ public class UplpDoc {
     @JoinColumn(name = "uplp_log_id", referencedColumnName = "uplp_log_id")
     @JsonIgnore
     private UplpLog uplpLog;
+
+
 
     @Override
     public String toString() {
