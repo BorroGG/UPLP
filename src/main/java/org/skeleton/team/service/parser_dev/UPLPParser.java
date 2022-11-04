@@ -9,9 +9,13 @@ import org.skeleton.team.entity.UplpDoc;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -175,9 +179,14 @@ public class UPLPParser {
 
                 uplpDoc.setDateOfIssue(parseIssueDate(word));
 
-                LocalDate issueEndDate = parseExpiryDate(uplpDoc.getDateOfIssue());
+//                LocalDate issueEndDate = parseExpiryDate(uplpDoc.getDateOfIssue());
+                LocalDate issueEndDate = parseExpiryDate(new SimpleDateFormat("dd.MM.yyyy").format(uplpDoc.getDateOfIssue()));
 
-                uplpDoc.setExpiryDate(issueEndDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+//                uplpDoc.setExpiryDate(issueEndDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+
+                uplpDoc.setExpiryDate(Date.from(issueEndDate.atStartOfDay()
+                        .atZone(ZoneId.systemDefault())
+                        .toInstant()));
 
                 uplpDoc.setUplpStatus(checkActual(issueEndDate));
 
@@ -196,10 +205,21 @@ public class UPLPParser {
         return uplpNum;
     }
 
-    private static String parseIssueDate(String word) {
-        String issueStartDateRaw = word.split(" ")[2];
+//    private static String parseIssueDate(String word) {
+//        String issueStartDateRaw = word.split(" ")[2];
+//
+//        return issueStartDateRaw;
+//    }
 
-        return issueStartDateRaw;
+    private static Date parseIssueDate(String word) {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
+
+        try {
+            return formatter.parse(word);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private static LocalDate parseExpiryDate(String issueStartDateRaw) {

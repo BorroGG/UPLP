@@ -7,34 +7,61 @@ import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.skeleton.team.entity.UplpDoc;
+import org.skeleton.team.entity.UplpLog;
+import org.skeleton.team.entity.UplpSimpleDoc;
+import org.skeleton.team.mapper.UplpDocMapper;
 import org.skeleton.team.repository.UplpDocRepository;
+import org.skeleton.team.repository.UplpLogRepository;
+import org.skeleton.team.util.UplpDocConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
-import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.OutputStream;
+import java.sql.Timestamp;
+import java.util.*;
 
+/**
+ * Класс для работы с документами ГПЗУ.
+ */
 @Service
 @RequiredArgsConstructor
 public class UplpDocServiceImpl implements UplpDocService {
 
     private final UplpDocRepository uplpDocRepository;
+    private final UplpLogRepository uplpLogRepository;
+    private final HttpServletRequest request;
+    private final UplpDocConverter uplpDocConverter;
+    private final UplpDocMapper uplpDocMapper;
 
     @Override
     @Transactional(readOnly = true)
-    public UplpDoc getUplpDocById(Integer id) {
+    public UplpDoc getUplpDocById(Long id) {
         return uplpDocRepository.findById(id).orElse(null);
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<UplpDoc> getUplpDocByIds(List<Long> ids) {
+        return uplpDocRepository.findAllById(ids);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UplpSimpleDoc> getUplpSimpleDocByIds(List<Long> ids) {
+        return uplpDocMapper.toSimpleDoc(getUplpDocByIds(ids));
+    }
+
+    @Override
     @Transactional
-    public UplpDoc deleteUplpDocById(Integer id) {
+    public UplpDoc deleteUplpDocById(Long id) {
         UplpDoc uplpDoc = uplpDocRepository.findById(id).orElse(null);
         if (uplpDoc != null) {
+            String filePath = uplpDoc.getFileReference();
+            File file = new File(filePath);
+            file.delete();
             uplpDocRepository.delete(uplpDoc);
             return uplpDoc;
         }
@@ -43,11 +70,19 @@ public class UplpDocServiceImpl implements UplpDocService {
 
     @Override
     @Transactional
-    public Map<String, UplpDoc> createUplpDocs(List<MultipartFile> multipartFiles, String docType) {
-        Map<String, UplpDoc> result = new HashMap<>();
+    public List<UplpDoc> createUplpDocs(List<MultipartFile> multipartFiles) {
+        List<UplpDoc> result = new ArrayList<>();
+        String realPathtoUploads = request.getServletContext().getRealPath("/files/");
+        if(! new File(realPathtoUploads).exists()) {
+            new File(realPathtoUploads).mkdir();
+        }
+
         for (int i = 0; i < multipartFiles.size(); i++) {
             try {
-                File file = File.createTempFile("pre", "su");
+                String orgName = multipartFiles.get(i).getOriginalFilename();
+                Date loadTime = new Timestamp(System.currentTimeMillis());
+                String filePath = realPathtoUploads + loadTime.getTime() + orgName;
+                File file = new File(filePath);
                 multipartFiles.get(i).transferTo(file);
                 String parsedText;
                 PDFParser parser = new PDFParser(new RandomAccessFile(file, "r"));
@@ -56,25 +91,28 @@ public class UplpDocServiceImpl implements UplpDocService {
                 PDFTextStripper pdfStripper = new PDFTextStripper();
                 PDDocument pdDoc = new PDDocument(cosDoc);
                 parsedText = pdfStripper.getText(pdDoc);
-//                PrintWriter pw = new PrintWriter("C:\\Users\\Евгений\\Desktop\\ЛиДеР\\pdf.txt");
-//                pw.print(parsedText);
-//                pw.close();
                 String[] words = parsedText.split(" ");
                 UplpDoc uplpDoc = new UplpDoc();
                 StringBuilder parseErrors = new StringBuilder();
                 for (String word : words) {
                     //TODO парсим
                 }
-                uplpDocRepository.save(uplpDoc);
-                //TODO сохраение ссылки на исходный файл образ ГПЗУ Причем непосредственно
-                //TODO хранение должно осуществляться на сетевом диске пользователя/организации.
+                UplpLog uplpLog = new UplpLog();
+                uplpLog.setFileName(orgName);
+                uplpLog.setLoadDttm(loadTime);
+                uplpLog.setProcessDttm(new Timestamp(System.currentTimeMillis()));
+                uplpDoc.setFileReference(file.getAbsolutePath());
                 if (parseErrors.length() == 0) {
-                    result.put(String.format("Документ №%s, обработан успешно ошибок нет", i + 1), uplpDoc);
+                    uplpLog.setProcessResult("Успешно");
                 } else {
-                    result.put(String.format("Документ №%s, обработан с ошибками:%s", i + 1, parseErrors), uplpDoc);
+                    uplpLog.setProcessResult("Неуспешно");
+                    uplpLog.setErrors(parseErrors.toString());
                 }
+                uplpLog = uplpLogRepository.save(uplpLog);
+                uplpDoc.setUplpLog(uplpLog);
+                result.add(uplpDocRepository.save(uplpDoc));
             } catch (Exception e) {
-                result.put(String.format("Документ №%s, не обработан, критическая ошибка:%s", i + 1, e), null);
+                throw new RuntimeException("Критическая ошибка обработки файлов: " + e.getMessage());
             }
         }
         return result;
@@ -82,7 +120,62 @@ public class UplpDocServiceImpl implements UplpDocService {
 
     @Override
     @Transactional
-    public UplpDoc updateUplpDoc(MultipartFile file, Integer id) {
-        return null;
+    public UplpDoc updateUplpDoc(MultipartFile multipartFile, Long id) {
+        //TODO поправить после изменений в создании документа
+        String realPathtoUploads = request.getServletContext().getRealPath("/files/");
+        if(! new File(realPathtoUploads).exists()) {
+            new File(realPathtoUploads).mkdir();
+        }
+        try {
+            deleteUplpDocById(id);
+            String orgName = multipartFile.getOriginalFilename();
+            Date loadTime = new Timestamp(System.currentTimeMillis());
+            String filePath = realPathtoUploads + loadTime.getTime() + orgName;
+            File file = new File(filePath);
+            multipartFile.transferTo(file);
+            String parsedText;
+            PDFParser parser = new PDFParser(new RandomAccessFile(file, "r"));
+            parser.parse();
+            COSDocument cosDoc = parser.getDocument();
+            PDFTextStripper pdfStripper = new PDFTextStripper();
+            PDDocument pdDoc = new PDDocument(cosDoc);
+            parsedText = pdfStripper.getText(pdDoc);
+            String[] words = parsedText.split(" ");
+            UplpDoc uplpDoc = new UplpDoc();
+            StringBuilder parseErrors = new StringBuilder();
+            for (String word : words) {
+                //TODO парсим
+            }
+            UplpLog uplpLog = new UplpLog();
+            uplpLog.setFileName(orgName);
+            uplpLog.setLoadDttm(loadTime);
+            uplpLog.setProcessDttm(new Timestamp(System.currentTimeMillis()));
+            uplpDoc.setFileReference(file.getAbsolutePath());
+            if (parseErrors.length() == 0) {
+                uplpLog.setProcessResult("Успешно");
+            } else {
+                uplpLog.setProcessResult("Неуспешно");
+                uplpLog.setErrors(parseErrors.toString());
+            }
+            uplpLog = uplpLogRepository.save(uplpLog);
+            uplpDoc.setUplpLog(uplpLog);
+            return uplpDocRepository.save(uplpDoc);
+        } catch (Exception e) {
+            throw new RuntimeException("Критическая ошибка обработки файлов: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void setUplpDocsToXlsxResponse(List<Long> ids, OutputStream outputStream) {
+        List<UplpDoc> docs = getUplpDocByIds(ids);
+        List<UplpSimpleDoc> simpleDocs = uplpDocMapper.toSimpleDoc(docs);
+        uplpDocConverter.convertUplpDocsToXlsxStream(simpleDocs, outputStream);
+    }
+
+    @Override
+    public void setUplpDocsToXmlResponse(List<Long> ids, OutputStream outputStream) {
+        List<UplpDoc> docs = getUplpDocByIds(ids);
+        List<UplpSimpleDoc> simpleDocs = uplpDocMapper.toSimpleDoc(docs);
+        uplpDocConverter.convertUplpDocsToXmlStream(simpleDocs, outputStream);
     }
 }

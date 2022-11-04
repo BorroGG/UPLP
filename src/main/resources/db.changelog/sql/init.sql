@@ -1,6 +1,6 @@
 create table if not exists uplp_doc
 (
-    uplp_doc_id                                    bigint       not null,
+    uplp_doc_id                                    serial       not null,
     record_no                                      varchar(128) null,
     uplp_no                                        varchar(128) null,
     date_of_issue                                  date         null,
@@ -65,6 +65,8 @@ create table if not exists uplp_doc
     clo_registration_no                            varchar(128) null,
     operator_name                                  varchar(128) null,
     actualisation_date                             date         null,
+    file_reference                                 varchar(128) not null,
+    uplp_log_id                                    bigint       not null,
     constraint pk_uplp_doc primary key (uplp_doc_id)
     );
 
@@ -200,3 +202,38 @@ comment on column uplp_doc.operator_name is
     'Исполнитель (оператор), ФИО';
 comment on column uplp_doc.actualisation_date is
     'Дата актуализации документа';
+comment on column uplp_doc.file_reference is
+    'Ссылка на исходный файл в системе';
+comment on column uplp_doc.uplp_log_id is
+    'ИД лога обработки';
+
+create table if not exists uplp_log
+(
+    uplp_log_id                                    serial       not null,
+    file_name                                      varchar(256) not null,
+    load_dttm                                      timestamptz  not null,
+    process_dttm                                   timestamptz  not null,
+    process_result                                 varchar(128) not null,
+    errors                                         text         null,
+    constraint pk_uplp_log primary key (uplp_log_id)
+);
+
+comment on table uplp_log is
+    'Логи обработки документа ГПЗУ';
+comment on column uplp_log.uplp_log_id is
+    'ИД лога обработки';
+comment on column uplp_log.file_name is
+    'Наименование загруженного файла';
+comment on column uplp_log.load_dttm is
+    'Дата и время загрузки файла';
+comment on column uplp_log.process_dttm is
+    'Дата и время обработки файла';
+comment on column uplp_log.process_result is
+    'Результат обработки Успешно/Неуспешно';
+comment on column uplp_log.errors is
+    'Ошибки при обработке';
+
+alter table uplp_doc
+    add constraint fk_uplp_doc_uplp_log foreign key (uplp_log_id)
+        references uplp_log (uplp_log_id)
+        on delete restrict on update restrict;

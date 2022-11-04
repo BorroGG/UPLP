@@ -1,26 +1,65 @@
 package org.skeleton.team.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.Date;
 
+/**
+ * Класс для представления документа ГПЗУ.
+ */
 @Getter
 @Setter
-@NoArgsConstructor
 @Schema(description = "Документ ГПЗУ")
 @Table(name = "uplp_doc")
 @Entity
 public class UplpDoc {
 
+    /**
+     * Простановка дефолтных занчений для строковых данных.
+     */
+    public UplpDoc() {
+        this.recordNo = "-";
+        this.uplpNo = "-";
+        this.uplpStatus = "-";
+        this.uplpRecipient = "-";
+        this.recipientType = "-";
+        this.administrativeArea = "-";
+        this.district = "-";
+        this.buildingAddress = "-";
+        this.cadastralNo = "-";
+        this.tlpProjectAvailability = "-";
+        this.tlpDocumentDetails = "-";
+        this.surveyingProjectAvailability = "-";
+        this.surveyingProjectDetails = "-";
+        this.sutGroupName = "-";
+        this.sutCodes = "-";
+        this.subzonesAvailability = "-";
+        this.builtUpAreaPercentage = "-";
+        this.buildingDensity = "-";
+        this.cboPurpose = "-";
+        this.cboDescription = "-";
+        this.objectsNotUnderConstructionStandarts = "-";
+        this.existingCboAvailability = "-";
+        this.existingCboTotalCount = "-";
+        this.existingCboPurpose = "-";
+        this.existingCboDescription = "-";
+        this.cloAvailability = "-";
+        this.cboTotalCount = "-";
+        this.cloDescription = "-";
+        this.cloIdentificationNo = "-";
+        this.cloRegistrationNo = "-";
+    }
+
     @Id
     @Schema(description = "ИД документа")
     @Column(name = "uplp_doc_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer uplpDocId;
+    private Long uplpDocId;
 
     @Schema(description = "Уникальный номер записи")
     @Column(name = "record_no")
@@ -32,7 +71,7 @@ public class UplpDoc {
 
     @Schema(description = "Дата выдачи ГПЗУ")
     @Column(name = "date_of_issue")
-    private String dateOfIssue;
+    private Date dateOfIssue;
 
     @Schema(description = "Статус ГПЗУ")
     @Column(name = "uplp_status")
@@ -40,7 +79,7 @@ public class UplpDoc {
 
     @Schema(description = "Срок действия ГПЗУ")
     @Column(name = "expiry_date")
-    private String expiryDate;
+    private Date expiryDate;
 
     @Schema(description = "Правообладатель или иной получатель ГПЗУ")
     @Column(name = "uplp_recipient")
@@ -104,7 +143,7 @@ public class UplpDoc {
 
     @Schema(description = "Максимальная высота застройки, м")
     @Column(name = "building_max_height")
-    private String buildingMaxHeight;
+    private BigDecimal buildingMaxHeight;
 
     @Schema(description = "Максимальное количество этажей, шт")
     @Column(name = "building_max_floors")
@@ -270,13 +309,26 @@ public class UplpDoc {
     @Column(name = "clo_registration_no")
     private String cloRegistrationNo;
 
+    //Доп данные
     @Schema(description = "Исполнитель (оператор), ФИО")
     @Column(name = "operator_name")
     private String operatorName;
 
     @Schema(description = "Дата актуализации документа")
     @Column(name = "actualisation_date")
-    private String actualisationDate;
+    private Date actualisationDate;
+
+    //Системные данные
+    @Schema(description = "Ссылка на исходный файл в системе")
+    @Column(name = "file_reference")
+    @JsonIgnore
+    private String fileReference;
+
+    @Schema(description = "Логи обработки документа ГПЗУ")
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "uplp_log_id", referencedColumnName = "uplp_log_id")
+    @JsonIgnore
+    private UplpLog uplpLog;
 
     @Override
     public String toString() {
