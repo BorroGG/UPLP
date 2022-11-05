@@ -16,15 +16,15 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 /**
- * Класс для преобразования документов ГПЗУ
+ * Класс для преобразования документов ГПЗУ.
  */
 @Component
 public class UplpDocConverter {
 
     /**
-     * Конвертирование в xml
-     * @param docs документы ГПЗУ
-     * @param outputStream
+     * Конвертирование в xml.
+     * @param docs документы ГПЗУ для конвертации
+     * @param outputStream поток данных ответа сервера
      */
     public void convertUplpDocsToXmlStream(List<UplpSimpleDoc> docs, OutputStream outputStream) {
         try {
@@ -40,9 +40,9 @@ public class UplpDocConverter {
     }
 
     /**
-     * Конвертирование в xlsx
-     * @param docs документы ГПЗУ
-     * @param outputStream
+     * Конвертирование в xlsx.
+     * @param docs документы ГПЗУ для конвертации
+     * @param outputStream поток данных ответа сервера
      */
     public void convertUplpDocsToXlsxStream(List<UplpSimpleDoc> docs, OutputStream outputStream) {
         Workbook workbook = new XSSFWorkbook();

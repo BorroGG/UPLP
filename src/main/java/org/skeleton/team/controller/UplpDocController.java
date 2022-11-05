@@ -19,20 +19,20 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+/**
+ * Класс контроллера для работы с документами ГПЗУ.
+ */
 @Tag(name = "Документы ГПЗУ", description = "Взаимодействие с документами ГПЗУ")
 @RestController
 @RequestMapping("uplp")
 @RequiredArgsConstructor
-/**
- * Класс контроллера для работы с документами ГПЗУ
- */
 public class UplpDocController {
 
     private final UplpDocService uplpDocService;
 
     /**
      * Получение документа ГПЗУ по ИД.
-     * @param id идентификатор
+     * @param id Идентификатор документа ГПЗУ
      * @return документ ГПЗУ
      */
     @GetMapping("/{id}")
@@ -50,7 +50,7 @@ public class UplpDocController {
 
     /**
      * Получение нескольких документов ГПЗУ по ИД.
-     * @param ids идентификаторы
+     * @param ids Идентификаторы документов ГПЗУ
      * @return документы ГПЗУ
      */
     @GetMapping("/")
@@ -67,8 +67,8 @@ public class UplpDocController {
     }
 
     /**
-     * Операция получения нескольких документов ГПЗУ по ИД в формате xlsx
-     * @param ids идентификаторы
+     * Операция получения нескольких документов ГПЗУ по ИД в формате xlsx.
+     * @param ids Идентификаторы документов ГПЗУ
      * @param response документы в формате xlsx
      */
     @GetMapping("/xlsx")
@@ -91,8 +91,8 @@ public class UplpDocController {
     }
 
     /**
-     * Операция получения нескольких документов ГПЗУ по ИД в формате xml
-     * @param ids идентификаторы
+     * Операция получения нескольких документов ГПЗУ по ИД в формате xml.
+     * @param ids Идентификаторы документов ГПЗУ
      * @param response документы в формате xml
      */
     @GetMapping("/xml")
@@ -115,8 +115,8 @@ public class UplpDocController {
     }
 
     /**
-     * Операция получения нескольких документов ГПЗУ по ИД в формате csv
-     * @param ids идентификаторы
+     * Операция получения нескольких документов ГПЗУ по ИД в формате csv.
+     * @param ids Идентификаторы документов ГПЗУ
      * @param response документы в формате csv
      */
     @GetMapping("/csv")
@@ -139,9 +139,9 @@ public class UplpDocController {
     }
 
     /**
-     * Операция получения нескольких документов ГПЗУ по ИД в формате json
-     * @param ids идентификаторы
-     * @param response документы в формате json
+     * Операция получения нескольких документов ГПЗУ по ИД в формате json.
+     * @param ids Идентификаторы документов ГПЗУ
+     * @return документы в формате json
      */
     @GetMapping("/json")
     @Operation(summary = "Получение документов ГПЗУ по ИД в формате json")
@@ -165,7 +165,7 @@ public class UplpDocController {
     }
 
     /**
-     * Операция получения одного или нескольких документов ГПЗУ из PDF-файлов
+     * Операция получения одного или нескольких документов ГПЗУ из PDF-файлов.
      * @param files документы ГПЗУ в формате PDF
      * @return документы ГПЗУ
      */
@@ -186,10 +186,10 @@ public class UplpDocController {
     }
 
     /**
-     * Операция удаления старого и загрузки нового документа ГПЗУ из PDF-файла
+     * Операция удаления старого и загрузки нового документа ГПЗУ из PDF-файла.
      * @param file новый документ в формате PDF
-     * @param id идентификатор
-     * @return документ ГПЗУ
+     * @param id Идентификатор документа ГПЗУ для обновления
+     * @return новый документ ГПЗУ
      */
     @PutMapping("/{id}")
     @Operation(summary = "Удаление старого и загрузка нового документа ГПЗУ из ПДФ файла")
@@ -207,9 +207,9 @@ public class UplpDocController {
     }
 
     /**
-     * Операция удаления документа ГПЗУ по ИД
-     * @param id идентификатор
-     * @return документ ГПЗУ
+     * Операция удаления документа ГПЗУ по ИД.
+     * @param id Идентификатор документа ГПЗУ для удаления
+     * @return удаленный документ ГПЗУ
      */
     @DeleteMapping("/{id}")
     @Operation(summary = "Удаление документа ГПЗУ по ИД")

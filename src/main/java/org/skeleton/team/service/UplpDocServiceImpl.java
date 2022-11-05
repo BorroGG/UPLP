@@ -38,7 +38,7 @@ public class UplpDocServiceImpl implements UplpDocService {
 
     /**
      * Получение документа ГПЗУ по ИД.
-     * @param id идентификатор
+     * @param id идентификатор документа ГПЗУ
      * @return документ ГПЗУ
      */
     @Override
@@ -49,7 +49,7 @@ public class UplpDocServiceImpl implements UplpDocService {
 
     /**
      * Получение нескольких документов ГПЗУ по ИД.
-     * @param ids идентификаторы
+     * @param ids идентификаторы документов ГПЗУ
      * @return документы ГПЗУ
      */
     @Override
@@ -60,8 +60,8 @@ public class UplpDocServiceImpl implements UplpDocService {
 
     /**
      * Получение простых документов ГПЗУ по ИД.
-     * @param ids идентификаторы
-     * @return документы ГПЗУ в формате для отображения у пользователя
+     * @param ids идентификаторы документов ГПЗУ
+     * @return документы ГПЗУ в формате без системных полей
      */
     @Override
     @Transactional(readOnly = true)
@@ -71,7 +71,7 @@ public class UplpDocServiceImpl implements UplpDocService {
 
     /**
      * Удаление документа ГПЗУ по ИД.
-     * @param id идентификатор
+     * @param id идентификатор документа ГПЗУ
      * @return документ ГПЗУ
      */
     @Override
@@ -144,9 +144,9 @@ public class UplpDocServiceImpl implements UplpDocService {
     }
 
     /**
-     * Удаление старого и загрузка нового документа ГПЗУ из PDF-файла
+     * Удаление старого и загрузка нового документа ГПЗУ из PDF-файла.
      * @param multipartFile новый документ в формате PDF
-     * @param id идентификатор
+     * @param id идентификатор документа ГПЗУ
      * @return документ ГПЗУ
      */
     @Override
@@ -197,9 +197,9 @@ public class UplpDocServiceImpl implements UplpDocService {
     }
 
     /**
-     * Добавление xlsx данных объектов в поток данных.
+     * Добавление xlsx данных объектов в поток данных ответа.
      * @param ids ИД документов ГПЗУ
-     * @param outputStream поток данных
+     * @param outputStream поток данных для вывода ответа
      */
     @Override
     public void setUplpDocsToXlsxResponse(List<Long> ids, OutputStream outputStream) {
@@ -209,9 +209,9 @@ public class UplpDocServiceImpl implements UplpDocService {
     }
 
     /**
-     * Добавление xml данных объектов в поток данных.
+     * Добавление xml данных объектов в поток данных ответа.
      * @param ids ИД документов ГПЗУ
-     * @param outputStream поток данных
+     * @param outputStream поток данных ответа
      */
     @Override
     public void setUplpDocsToXmlResponse(List<Long> ids, OutputStream outputStream) {

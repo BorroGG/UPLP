@@ -332,7 +332,6 @@ public class UplpDoc {
     @JsonIgnore
     private UplpLog uplpLog;
 
-
     /**
      * Метод для представления документа в строковом формате
      * @return документ в строковом формате

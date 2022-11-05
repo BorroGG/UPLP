@@ -7,22 +7,22 @@ import org.skeleton.team.entity.UplpSimpleDoc;
 import java.util.List;
 
 /**
- * Интерфейс для маппинга полей одного объекта на другой
+ * Интерфейс для маппинга полей одного объекта на другой.
  */
 @Mapper(componentModel = "spring")
 public interface UplpDocMapper {
 
     /**
-     * Маппинг из одного документа
+     * Маппинг из документа ГПЗУ в формат без системных полей.
      * @param doc документ ГПЗУ
-     * @return документ ГПЗУ в простом формате
+     * @return документ ГПЗУ в простом формате без системных полей
      */
     UplpSimpleDoc toSimpleDoc(UplpDoc doc);
 
     /**
-     * Маппинг из нескольких документов
+     * Маппинг нескольких документов ГПЗУ в формат без системных полей.
      * @param doc документы ГПЗУ
-     * @return документы ГПЗУ в простом формате
+     * @return документы ГПЗУ в простом формате без системных полей
      */
     List<UplpSimpleDoc> toSimpleDoc(List<UplpDoc> doc);
 }

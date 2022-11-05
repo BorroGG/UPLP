@@ -5,20 +5,20 @@ import org.skeleton.team.entity.UplpLog;
 import java.util.List;
 
 /**
- * Интерфейс для работы с логами обработки документов ГПЗУ
+ * Интерфейс для работы с логами обработки документов ГПЗУ.
  */
 public interface UplpLogService {
 
     /**
      * Получение лога обработки документа ГПЗУ по ИД.
-     * @param uplpDocId идентификатор
+     * @param uplpDocId идентификатор документа ГПЗУ
      * @return лог обработки
      */
     UplpLog getUplpLogByDocId(Long uplpDocId);
 
     /**
      * Получение логов обработки нескольких документов ГПЗУ по ИД.
-     * @param uplpDocIds идентификаторы
+     * @param uplpDocIds идентификаторы документов ГПЗУ
      * @return логи обработки
      */
     List<UplpLog> getUplpLogsByDocIds(List<Long> uplpDocIds);

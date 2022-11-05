@@ -21,7 +21,7 @@ public class UplpLogServiceImpl implements UplpLogService {
 
     /**
      * Получение лога обработки документа ГПЗУ по ИД.
-     * @param uplpDocId идентификатор
+     * @param uplpDocId идентификатор документа ГПЗУ
      * @return лог обработки
      */
     @Override
@@ -33,7 +33,7 @@ public class UplpLogServiceImpl implements UplpLogService {
 
     /**
      * Получение логов обработки нескольких документов ГПЗУ по ИД.
-     * @param uplpDocIds идентификаторы
+     * @param uplpDocIds идентификаторы документов ГПЗУ
      * @return логи обработки
      */
     @Override

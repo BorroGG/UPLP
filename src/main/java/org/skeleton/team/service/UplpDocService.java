@@ -14,28 +14,28 @@ public interface UplpDocService {
 
     /**
      * Получение документа ГПЗУ по ИД.
-     * @param id идентификатор
+     * @param id идентификатор документа ГПЗУ
      * @return документ ГПЗУ
      */
     UplpDoc getUplpDocById(Long id);
 
     /**
      * Получение нескольких документов ГПЗУ по ИД.
-     * @param ids идентификаторы
+     * @param ids идентификаторы документов ГПЗУ
      * @return документы ГПЗУ
      */
     List<UplpDoc> getUplpDocByIds(List<Long> ids);
 
     /**
      * Получение простых документов ГПЗУ по ИД.
-     * @param ids идентификаторы
-     * @return документы ГПЗУ в формате для отображения у пользователя
+     * @param ids идентификаторы документов ГПЗУ
+     * @return документы ГПЗУ в формате без системных полей
      */
     List<UplpSimpleDoc> getUplpSimpleDocByIds(List<Long> ids);
 
     /**
      * Удаление документа ГПЗУ по ИД.
-     * @param id идентификатор
+     * @param id идентификатор документа ГПЗУ
      * @return документ ГПЗУ
      */
     UplpDoc deleteUplpDocById(Long id);
@@ -48,24 +48,24 @@ public interface UplpDocService {
     List<UplpDoc> createUplpDocs(List<MultipartFile> files);
 
     /**
-     * Удаление старого и загрузка нового документа ГПЗУ из PDF-файла
+     * Удаление старого и загрузка нового документа ГПЗУ из PDF-файла.
      * @param multipartFile новый документ в формате PDF
-     * @param id идентификатор
+     * @param id идентификатор документа ГПЗУ
      * @return документ ГПЗУ
      */
     UplpDoc updateUplpDoc(MultipartFile multipartFile, Long id);
 
     /**
-     * Добавление xlsx данных объектов в поток данных.
+     * Добавление xlsx данных объектов в поток данных ответа.
      * @param ids ИД документов ГПЗУ
-     * @param outputStream поток данных
+     * @param outputStream поток данных для вывода ответа
      */
     void setUplpDocsToXlsxResponse(List<Long> ids, OutputStream outputStream);
 
     /**
-     * Добавление xml данных объектов в поток данных.
+     * Добавление xml данных объектов в поток данных ответа.
      * @param ids ИД документов ГПЗУ
-     * @param outputStream поток данных
+     * @param outputStream поток данных ответа
      */
     void setUplpDocsToXmlResponse(List<Long> ids, OutputStream outputStream);
 }
