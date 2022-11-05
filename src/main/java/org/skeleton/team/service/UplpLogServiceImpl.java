@@ -9,12 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+//Класс для получения логов обработки документов ГПЗУ
 @Service
 @RequiredArgsConstructor
 public class UplpLogServiceImpl implements UplpLogService {
 
     private final UplpDocService uplpDocService;
 
+    //Получение логов обработки документа
     @Override
     @Transactional(readOnly = true)
     public UplpLog getUplpLogByDocId(Long uplpDocId) {
@@ -22,6 +24,7 @@ public class UplpLogServiceImpl implements UplpLogService {
         return doc != null ? doc.getUplpLog() : null;
     }
 
+    //Получение логов обработки нескольких документов
     @Override
     @Transactional(readOnly = true)
     public List<UplpLog> getUplpLogsByDocIds(List<Long> uplpDocIds) {

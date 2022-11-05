@@ -15,9 +15,11 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
+//Класс для преобразования документов ГПЗУ
 @Component
 public class UplpDocConverter {
 
+    //Конвертирование в xml
     public void convertUplpDocsToXmlStream(List<UplpSimpleDoc> docs, OutputStream outputStream) {
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(UplpSimpleDoc.class, UplpDocCollection.class);
@@ -31,6 +33,7 @@ public class UplpDocConverter {
         }
     }
 
+    //Конвертирование в xlsx
     public void convertUplpDocsToXlsxStream(List<UplpSimpleDoc> docs, OutputStream outputStream) {
         Workbook workbook = new XSSFWorkbook();
 
@@ -240,6 +243,7 @@ public class UplpDocConverter {
         }
     }
 
+    //Задание стиля строк таблицы
     private void setRowStyle(Row row, CellStyle cellStyle) {
         for (int i = row.getFirstCellNum(); i < row.getLastCellNum(); i++) {
             if (row.getCell(i) != null) {
@@ -248,6 +252,7 @@ public class UplpDocConverter {
         }
     }
 
+    //Добавление данных в файл
     private void addDataToFile(Sheet sheet, int rowNum, UplpSimpleDoc uplpDoc, int index) {
         int cellNum = 0;
 

@@ -19,6 +19,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+//Класс контроллера для работы с документами ГПЗУ
 @Tag(name = "Документы ГПЗУ", description = "Взаимодействие с документами ГПЗУ")
 @RestController
 @RequestMapping("uplp")
@@ -27,6 +28,7 @@ public class UplpDocController {
 
     private final UplpDocService uplpDocService;
 
+    //Операция получения документа ГПЗУ по ИД
     @GetMapping("/{id}")
     @Operation(summary = "Получение документа ГПЗУ по ИД")
     public ResponseEntity<UplpDoc> getUplpDocById(
@@ -40,6 +42,7 @@ public class UplpDocController {
         return ResponseEntity.notFound().build();
     }
 
+    //Операция получения нескольких документов ГПЗУ по ИД
     @GetMapping("/")
     @Operation(summary = "Получение документов ГПЗУ по ИД")
     public ResponseEntity<List<UplpDoc>> getUplpDocsByIds(
@@ -53,6 +56,7 @@ public class UplpDocController {
         return ResponseEntity.notFound().build();
     }
 
+    //Операция получения нескольких документов ГПЗУ по ИД в формате xlsx
     @GetMapping("/xlsx")
     @Operation(summary = "Получение документов ГПЗУ по ИД в формате xlsx")
     public void getXlsxUplpDocsByIds(
@@ -72,6 +76,7 @@ public class UplpDocController {
         }
     }
 
+    //Операция получения нескольких документов ГПЗУ по ИД в формате xml
     @GetMapping("/xml")
     @Operation(summary = "Получение документов ГПЗУ по ИД в формате xml")
     public void getXmlUplpDocsByIds(
@@ -91,6 +96,7 @@ public class UplpDocController {
         }
     }
 
+    //Операция получения нескольких документов ГПЗУ по ИД в формате csv
     @GetMapping("/csv")
     @Operation(summary = "Получение документов ГПЗУ по ИД в формате csv")
     public void getCsvUplpDocsByIds(
@@ -110,6 +116,7 @@ public class UplpDocController {
         }
     }
 
+    //Операция получения нескольких документов ГПЗУ по ИД в формате json
     @GetMapping("/json")
     @Operation(summary = "Получение документов ГПЗУ по ИД в формате json")
     public ResponseEntity<byte[]> getJsonUplpDocsByIds(
@@ -131,6 +138,7 @@ public class UplpDocController {
         }
     }
 
+    //Операция получения одного или нескольких документов ГПЗУ из PDF-файла
     @PostMapping
     @Operation(summary = "Создание документа(ов) ГПЗУ из ПДФ файла")
     public ResponseEntity<List<UplpDoc>> createUplpDoc(
@@ -147,6 +155,7 @@ public class UplpDocController {
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
     }
 
+    //Операция удаления старого и загрузки нового документа ГПЗУ из PDF-файла
     @PutMapping("/{id}")
     @Operation(summary = "Удаление старого и загрузка нового документа ГПЗУ из ПДФ файла")
     public ResponseEntity<UplpDoc> updateUplpDoc(
@@ -162,6 +171,7 @@ public class UplpDocController {
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
     }
 
+    //Операция удаления документа ГПЗУ по ИД
     @DeleteMapping("/{id}")
     @Operation(summary = "Удаление документа ГПЗУ по ИД")
     public ResponseEntity<UplpDoc> deleteUplpDocById(

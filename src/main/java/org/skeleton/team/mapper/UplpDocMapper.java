@@ -6,6 +6,7 @@ import org.skeleton.team.entity.UplpSimpleDoc;
 
 import java.util.List;
 
+//Интерфейс для маппинга полей одного объекта на другой
 @Mapper(componentModel = "spring")
 public interface UplpDocMapper {
 
