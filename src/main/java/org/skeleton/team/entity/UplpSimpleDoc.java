@@ -8,7 +8,9 @@ import javax.xml.bind.annotation.XmlType;
 import java.math.BigDecimal;
 import java.util.Date;
 
-//Класс для представления простого документа ГПЗУ
+/**
+ * Класс для представления простого документа ГПЗУ
+ */
 @XmlRootElement(name = "uplpDoc")
 @XmlType(propOrder = {
         "recordNo",

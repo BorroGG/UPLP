@@ -333,7 +333,10 @@ public class UplpDoc {
     private UplpLog uplpLog;
 
 
-    //Метод для представления документа в строковом формате
+    /**
+     * Метод для представления документа в строковом формате
+     * @return документ в строковом формате
+     */
     @Override
     public String toString() {
         return "{\"UplpDoc\":{"

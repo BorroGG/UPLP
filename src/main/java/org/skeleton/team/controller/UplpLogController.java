@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-//Класс контроллера для работы с логами обработки файлов
+/**
+ * Класс контроллера для работы с логами обработки файлов
+ */
 @Tag(name = "Логи по документам ГПЗУ", description = "Взаимодействие с логами документов ГПЗУ")
 @RestController
 @RequestMapping("log")
@@ -20,7 +22,11 @@ public class UplpLogController {
 
     private final UplpLogService uplpLogService;
 
-    //Операция получения логов обработки документа ГПЗУ по ИД
+    /**
+     * Операция получения логов обработки документа ГПЗУ по ИД
+     * @param uplpId идентификатор
+     * @return лог обработки документа
+     */
     @GetMapping("/{uplpId}")
     @Operation(summary = "Получение логов обработки документа ГПЗУ по ИД документа")
     public ResponseEntity<UplpLog> getUplpLogByDocId(
@@ -34,7 +40,11 @@ public class UplpLogController {
         return ResponseEntity.notFound().build();
     }
 
-    //Операция получения логов обработки нескольких документов ГПЗУ по ИД
+    /**
+     * Операция получения логов обработки нескольких документов ГПЗУ по ИД
+     * @param uplpIds идентификаторы
+     * @return логи обработки документов
+     */
     @GetMapping("/")
     @Operation(summary = "Получение логов обработки документов ГПЗУ по ИД документов")
     public ResponseEntity<List<UplpLog>> getUplpLogsByDocIds(

@@ -9,7 +9,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import java.util.List;
 
-//Класс для представления нескольких документов ГПЗУ
+/**
+ * Класс для представления нескольких документов ГПЗУ
+ */
 @XmlRootElement(name = "uplpDocCollection")
 @XmlType(propOrder = {"uplpDoc"})
 @Setter

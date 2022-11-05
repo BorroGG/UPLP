@@ -36,28 +36,44 @@ public class UplpDocServiceImpl implements UplpDocService {
     private final UplpDocConverter uplpDocConverter;
     private final UplpDocMapper uplpDocMapper;
 
-    //Получения документа по ИД
+    /**
+     * Получение документа ГПЗУ по ИД.
+     * @param id идентификатор
+     * @return документ ГПЗУ
+     */
     @Override
     @Transactional(readOnly = true)
     public UplpDoc getUplpDocById(Long id) {
         return uplpDocRepository.findById(id).orElse(null);
     }
 
-    //Получение нескольких документов по ИД
+    /**
+     * Получение нескольких документов ГПЗУ по ИД.
+     * @param ids идентификаторы
+     * @return документы ГПЗУ
+     */
     @Override
     @Transactional(readOnly = true)
     public List<UplpDoc> getUplpDocByIds(List<Long> ids) {
         return uplpDocRepository.findAllById(ids);
     }
 
-    //Получение простых документов по ИД
+    /**
+     * Получение простых документов ГПЗУ по ИД.
+     * @param ids идентификаторы
+     * @return документы ГПЗУ в формате для отображения у пользователя
+     */
     @Override
     @Transactional(readOnly = true)
     public List<UplpSimpleDoc> getUplpSimpleDocByIds(List<Long> ids) {
         return uplpDocMapper.toSimpleDoc(getUplpDocByIds(ids));
     }
 
-    //Удаление документа по ИД
+    /**
+     * Удаление документа ГПЗУ по ИД.
+     * @param id идентификатор
+     * @return документ ГПЗУ
+     */
     @Override
     @Transactional
     public UplpDoc deleteUplpDocById(Long id) {
@@ -72,7 +88,11 @@ public class UplpDocServiceImpl implements UplpDocService {
         return null;
     }
 
-    //Получение документа из PDF
+    /**
+     * Получение нескольких документов ГПЗУ из PDF-файлов.
+     * @param multipartFiles файлы в формате PDF
+     * @return документы ГПЗУ
+     */
     @Override
     @Transactional
     public List<UplpDoc> createUplpDocs(List<MultipartFile> multipartFiles) {
@@ -123,7 +143,12 @@ public class UplpDocServiceImpl implements UplpDocService {
         return result;
     }
 
-    //Обновление данных документов
+    /**
+     * Удаление старого и загрузка нового документа ГПЗУ из PDF-файла
+     * @param multipartFile новый документ в формате PDF
+     * @param id идентификатор
+     * @return документ ГПЗУ
+     */
     @Override
     @Transactional
     public UplpDoc updateUplpDoc(MultipartFile multipartFile, Long id) {
@@ -171,7 +196,11 @@ public class UplpDocServiceImpl implements UplpDocService {
         }
     }
 
-    //Получение документов по ИД и их преобразование в xlsx
+    /**
+     * Добавление xlsx данных объектов в поток данных.
+     * @param ids ИД документов ГПЗУ
+     * @param outputStream поток данных
+     */
     @Override
     public void setUplpDocsToXlsxResponse(List<Long> ids, OutputStream outputStream) {
         List<UplpDoc> docs = getUplpDocByIds(ids);
@@ -179,7 +208,11 @@ public class UplpDocServiceImpl implements UplpDocService {
         uplpDocConverter.convertUplpDocsToXlsxStream(simpleDocs, outputStream);
     }
 
-    //Получение документов по ИД и их преобразование в xml
+    /**
+     * Добавление xml данных объектов в поток данных.
+     * @param ids ИД документов ГПЗУ
+     * @param outputStream поток данных
+     */
     @Override
     public void setUplpDocsToXmlResponse(List<Long> ids, OutputStream outputStream) {
         List<UplpDoc> docs = getUplpDocByIds(ids);
