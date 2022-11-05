@@ -36,24 +36,28 @@ public class UplpDocServiceImpl implements UplpDocService {
     private final UplpDocConverter uplpDocConverter;
     private final UplpDocMapper uplpDocMapper;
 
+    //Получения документа по ИД
     @Override
     @Transactional(readOnly = true)
     public UplpDoc getUplpDocById(Long id) {
         return uplpDocRepository.findById(id).orElse(null);
     }
 
+    //Получение нескольких документов по ИД
     @Override
     @Transactional(readOnly = true)
     public List<UplpDoc> getUplpDocByIds(List<Long> ids) {
         return uplpDocRepository.findAllById(ids);
     }
 
+    //Получение простых документов по ИД
     @Override
     @Transactional(readOnly = true)
     public List<UplpSimpleDoc> getUplpSimpleDocByIds(List<Long> ids) {
         return uplpDocMapper.toSimpleDoc(getUplpDocByIds(ids));
     }
 
+    //Удаление документа по ИД
     @Override
     @Transactional
     public UplpDoc deleteUplpDocById(Long id) {
@@ -68,6 +72,7 @@ public class UplpDocServiceImpl implements UplpDocService {
         return null;
     }
 
+    //Получение документа из PDF
     @Override
     @Transactional
     public List<UplpDoc> createUplpDocs(List<MultipartFile> multipartFiles) {
@@ -118,6 +123,7 @@ public class UplpDocServiceImpl implements UplpDocService {
         return result;
     }
 
+    //Обновление данных документов
     @Override
     @Transactional
     public UplpDoc updateUplpDoc(MultipartFile multipartFile, Long id) {
@@ -165,6 +171,7 @@ public class UplpDocServiceImpl implements UplpDocService {
         }
     }
 
+    //Получение документов по ИД и их преобразование в xlsx
     @Override
     public void setUplpDocsToXlsxResponse(List<Long> ids, OutputStream outputStream) {
         List<UplpDoc> docs = getUplpDocByIds(ids);
@@ -172,6 +179,7 @@ public class UplpDocServiceImpl implements UplpDocService {
         uplpDocConverter.convertUplpDocsToXlsxStream(simpleDocs, outputStream);
     }
 
+    //Получение документов по ИД и их преобразование в xml
     @Override
     public void setUplpDocsToXmlResponse(List<Long> ids, OutputStream outputStream) {
         List<UplpDoc> docs = getUplpDocByIds(ids);

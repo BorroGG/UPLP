@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+//Класс парсера PDF-документа
 public class UPLPParser {
 
     private static final String ISSUE_DATE_ACTUAL = "Действует";
@@ -30,6 +31,7 @@ public class UPLPParser {
 
     private static UplpDoc uplpDoc;
 
+    //Метод обработки загруженных файлов
     public static void main(String[] args) throws IOException {
 
         File file = new File("RU77106000-043720-GPZU.pdf");
@@ -50,6 +52,7 @@ public class UPLPParser {
 
     }
 
+    //Парсинг документа ГПЗУ
     private static void parsingUPLPFile(File file) throws IOException {
         String parsedText;
 

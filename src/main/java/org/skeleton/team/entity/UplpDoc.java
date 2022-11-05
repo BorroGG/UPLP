@@ -56,6 +56,7 @@ public class UplpDoc {
         this.cloRegistrationNo = "-";
     }
 
+    //Основные данные документа
     @Id
     @Schema(description = "ИД документа")
     @Column(name = "uplp_doc_id")
@@ -332,7 +333,7 @@ public class UplpDoc {
     private UplpLog uplpLog;
 
 
-
+    //Метод для представления документа в строковом формате
     @Override
     public String toString() {
         return "{\"UplpDoc\":{"

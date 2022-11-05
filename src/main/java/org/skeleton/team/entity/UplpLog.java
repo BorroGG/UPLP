@@ -8,6 +8,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.util.Date;
 
+//Класс для представления логов обработки документа ГПЗУ
 @Getter
 @Setter
 @NoArgsConstructor
