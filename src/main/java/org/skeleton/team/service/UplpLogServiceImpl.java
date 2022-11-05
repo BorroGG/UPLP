@@ -19,25 +19,25 @@ public class UplpLogServiceImpl implements UplpLogService {
 
     private final UplpDocService uplpDocService;
 
-    @Override
-    @Transactional(readOnly = true)
     /**
      * Получение лога обработки документа ГПЗУ по ИД.
      * @param uplpDocId идентификатор
      * @return лог обработки
      */
+    @Override
+    @Transactional(readOnly = true)
     public UplpLog getUplpLogByDocId(Long uplpDocId) {
         UplpDoc doc = uplpDocService.getUplpDocById(uplpDocId);
         return doc != null ? doc.getUplpLog() : null;
     }
 
-    @Override
-    @Transactional(readOnly = true)
     /**
      * Получение логов обработки нескольких документов ГПЗУ по ИД.
      * @param uplpDocIds идентификаторы
      * @return логи обработки
      */
+    @Override
+    @Transactional(readOnly = true)
     public List<UplpLog> getUplpLogsByDocIds(List<Long> uplpDocIds) {
         List<UplpDoc> docs = uplpDocService.getUplpDocByIds(uplpDocIds);
         if (!docs.isEmpty()) {
