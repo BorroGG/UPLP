@@ -19,59 +19,39 @@ import java.util.Date;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-//Класс парсера PDF-документа
 public class UPLPParser {
 
     private static final String ISSUE_DATE_ACTUAL = "Действует";
     private static final String ISSUE_DATE_EXPIRED = "Срок действия истёк";
+
     private static final String SECRET = "Секретно";
     public static final String SUT_NOT_LIVING = "Не жилая";
     public static final String SUT_MIXED = "Смешанная";
     public static final String SUT_LIVING = "Жилая";
 
-    private static UplpDoc uplpDoc;
+    private UplpDoc uplpDoc;
 
-    //Метод обработки загруженных файлов
-    public static void main(String[] args) throws IOException {
-
-        File file = new File("RU77106000-043720-GPZU.pdf");
-
-        parsingUPLPFile(file);
-
-/*
-        File file = new File(".");
-
-        for(String uplp : file.list()){
-            if(uplp.endsWith(".pdf")) {
-                File uplpFile = new File(uplp);
-                parsingUPLPFile(uplpFile);
-            }
-        }
-*/
-
-
-    }
-
-    //Парсинг документа ГПЗУ
-    private static void parsingUPLPFile(File file) throws IOException {
-        String parsedText;
-
-        PDFParser parser = new PDFParser(new RandomAccessFile(file, "r"));
-        parser.parse();
-
-        COSDocument cosDoc = parser.getDocument();
-
-        PDFTextStripper pdfStripper = new PDFTextStripper();
-        PDDocument pdDoc = new PDDocument(cosDoc);
-        parsedText = pdfStripper.getText(pdDoc);
-
-        String[] words = parsedText.split("\n|\r\n");
+    /**
+     * Производит последовательный парсинг документа согласно требуемому регламенту и возвращает сущность документа с заполненными полями.
+     * @param file - pdf-документ ГПЗУ для парсинга
+     * @return документ с парсенными полями
+     * @throws IOException
+     */
+    public UplpDoc parsingUPLPFile(File file) throws IOException {
 
         uplpDoc = new UplpDoc();
 
+        //Подготавливаем документ и получаем строку с текстом документа
+        String parsedText = prepareFile(file);
+
+        //Разбиваем строку на массив отдельных строк в зависимости от ОС (на Windows и UNIX системах разные коды для переноса строки)
+        String[] words = parsedText.split("\n|\r\n");
+
+        //Парсинг первых пяти атрибутов
         parse1to5Attributes(words);
 
         //TODO достать библиотеку склонений
+
         uplpDoc.setUplpRecipient(parseRecipient(words));
 
         uplpDoc.setRecipientType(checkRecipientType(uplpDoc.getUplpRecipient()));
@@ -96,14 +76,29 @@ public class UPLPParser {
 
         uplpDoc.setSutCodes(codesVRI);
 
-        for(String word : words){
-            if(word.matches("\\d+ ± \\d.+|\\d+. кв.м")){
-                String plotArea = word.split(" ")[0];
-                System.out.println(plotArea);
-                uplpDoc.setPlotArea(Integer.parseInt(plotArea));
-            }
-        }
+        parsePlotArea(words);
 
+        String subzones = parseSubzones(words);
+
+        uplpDoc.setSubzonesAvailability(subzones);
+
+        System.out.println("=============================");
+
+        System.out.println();
+
+        System.out.println(uplpDoc.toString());
+
+        return uplpDoc;
+    }
+
+    /**
+     * Парсинг подзон и атрибутов:<br>
+     * - Наличие подзон ЗУ, номера<br>
+     * - Площади подзон ЗУ, кв.м (пока только для одной подзоны)
+     * @param words текстовый массив строк документов
+     * @return текст с номерами подзон
+     */
+    private String parseSubzones(String[] words) {
         String subzones = "";
 
         String areaSquare = "";
@@ -145,27 +140,54 @@ public class UPLPParser {
                 System.out.println(areaSquare);
             }
         }
-      if(subzones.equals("")){
-            subzones = "нет";
-        }
-
-        uplpDoc.setSubzonesAvailability(subzones);
-
-        /*for(String word : words){
-            if(word.startsWith("г. Москва")){
-                System.out.println(word);
-            }
-        }*/
-
-
-        System.out.println("=============================");
-
-        System.out.println();
-
-        System.out.println(uplpDoc.toString());
+        if(subzones.equals("")){
+              subzones = "нет";
+          }
+        return subzones;
     }
 
-    private static String parseSutCodes(String parsedText) {
+    /**
+     * Парсинг атрибута "Площадь земельного  участка (ЗУ), кв.м"
+     * @param words текстовый массив документа
+     */
+    private void parsePlotArea(String[] words) {
+        for(String word : words){
+            if(word.matches("\\d+ ± \\d.+|\\d+. кв.м")){
+                String plotArea = word.split(" ")[0];
+                System.out.println(plotArea);
+                uplpDoc.setPlotArea(Integer.parseInt(plotArea));
+            }
+        }
+    }
+
+    /**
+     * Открывает файл и обрабатывает структуру документа с помощью внешней библиотеки парсинга.
+     * Возвращает полученный текст в формате одной переменной
+     * @param file pdf-документ ГПЗУ для парсинга
+     * @return текст документа в формате строки с переносами
+     * @throws IOException
+     */
+    private static String prepareFile(File file) throws IOException {
+        String parsedText;
+
+        PDFParser parser = new PDFParser(new RandomAccessFile(file, "r"));
+        parser.parse();
+
+        COSDocument cosDoc = parser.getDocument();
+
+        PDFTextStripper pdfStripper = new PDFTextStripper();
+        PDDocument pdDoc = new PDDocument(cosDoc);
+        parsedText = pdfStripper.getText(pdDoc);
+        return parsedText;
+    }
+
+    /**
+     * Парсинг атрибута "Наименование условной группы использования ЗУ по ВРИ"
+     * Заполняет соответствующее поле в документе и возвращает набор кодов.
+     * @param parsedText "сырая" строка с текстом документа
+     * @return атрибут "Коды основных видов разрешенного использования (ВРИ) земельного  участка (ЗУ)"
+     */
+    private String parseSutCodes(String parsedText) {
         String[] words;
         words = parsedText.split(" ");
 
@@ -201,7 +223,7 @@ public class UPLPParser {
         return codesVRI.substring(0, codesVRI.length()-1);
     }
 
-    private static String checkLivingPlace(String codesVRI) {
+    private String checkLivingPlace(String codesVRI) {
 
         String sutStatus = "";
 
@@ -220,7 +242,12 @@ public class UPLPParser {
         return sutStatus;
     }
 
-    private static String parseAvailability(String[] words) {
+    /**
+     * Парсинг атрибута "Наличие проекта планировки территории (ППТ) в границах ГПЗУ реквизиты документа"
+     * @param words текстовый массив документа
+     * @return строка наличия проекта планировки
+     */
+    private String parseAvailability(String[] words) {
         String availability = "";
 
         for(String word : words){
@@ -241,7 +268,11 @@ public class UPLPParser {
         return availability;
     }
 
-    private static void parseCadastralNumber(String[] words) {
+    /**
+     * Парсинг атрибута "Кадастровый номер земельного участка (ЗУ) или условный номер"
+     * @param words текстовый массив документа
+     */
+    private void parseCadastralNumber(String[] words) {
         for(String word : words){//77:06:0003002:70 //02/01/10179
             if(word.matches("\\d{2}:\\d{2}:\\d{7}:\\d+")
                     || word.matches("\\d{2}/\\d{2}/\\d{5}")
@@ -255,7 +286,12 @@ public class UPLPParser {
         }
     }
 
-    private static String parseBuildingAddress(String[] words) {
+    /**
+     * Парсинг атрибута "Строительный адрес"
+     * @param words массив строк документа
+     * @return строительный адрес
+     */
+    private String parseBuildingAddress(String[] words) {
         String line = "";
 
         for(int i = 0; i < words.length/2; i++){
@@ -272,7 +308,7 @@ public class UPLPParser {
 
         String[] lines = line.split(", ");
 
-        Stream<String> sLines = Arrays.stream(lines).dropWhile(UPLPParser::checkRegion);
+        Stream<String> sLines = Arrays.stream(lines).dropWhile(this::checkRegion);
 
         String s = sLines.collect(Collectors.joining(", "));
 
@@ -282,7 +318,16 @@ public class UPLPParser {
     }
 
 
-    private static void parse1to5Attributes(String[] words){
+    /**
+     * Производит парсинг первых пяти атрибутов:<br>
+     * - Уникальный номер записи <br>
+     * - Номер документа ГПЗУ<br>
+     * - Дата выдачи ГПЗУ<br>
+     * - Статус ГПЗУ <br>
+     * - Срок действия ГПЗУ<br>
+     * @param words набор строк из документа
+     */
+    private void parse1to5Attributes(String[] words){
         for(String word : words) {
             if (word.startsWith("№ RU")) {
                 uplpDoc.setUplpNo(parseNumber(word));
@@ -318,7 +363,7 @@ public class UPLPParser {
         }
     }
 
-    private static String parseNumber(String word){
+    private String parseNumber(String word){
         String uplpNum = word.split("\n")[0].substring(2);
 
         return uplpNum;
@@ -330,7 +375,7 @@ public class UPLPParser {
 //        return issueStartDateRaw;
 //    }
 
-    private static Date parseIssueDate(String word) {
+    private Date parseIssueDate(String word) {
         SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
 
         try {
@@ -341,7 +386,7 @@ public class UPLPParser {
         return null;
     }
 
-    private static LocalDate parseExpiryDate(String issueStartDateRaw) {
+    private LocalDate parseExpiryDate(String issueStartDateRaw) {
         String[] issueStartDateRawSplit = issueStartDateRaw.split("\\.");
 
         LocalDate issueDate = LocalDate.parse(issueStartDateRawSplit[2] + issueStartDateRawSplit[1] + issueStartDateRawSplit[0], DateTimeFormatter.BASIC_ISO_DATE);
@@ -355,7 +400,7 @@ public class UPLPParser {
         return issueEndDate;
     }
 
-    private static String checkActual(LocalDate issueEndDate){
+    private String checkActual(LocalDate issueEndDate){
         LocalDate today = LocalDate.now();
 
         if(issueEndDate.isAfter(today)){
@@ -365,7 +410,7 @@ public class UPLPParser {
         }
     }
 
-    private static boolean isEndInFirstPeriod(LocalDate issueEndDate){
+    private boolean isEndInFirstPeriod(LocalDate issueEndDate){
         LocalDate firstPeriodStart = LocalDate.of(2020, 4,6);
 
         LocalDate firstPeriodEnd = LocalDate.of(2021, 1,1);
@@ -373,7 +418,7 @@ public class UPLPParser {
         return issueEndDate.isAfter(firstPeriodStart.minusDays(1)) && issueEndDate.isBefore(firstPeriodEnd.plusDays(1));
     }
 
-    private static boolean isEndInSecondPeriod(LocalDate issueEndDate){
+    private boolean isEndInSecondPeriod(LocalDate issueEndDate){
         LocalDate secondPeriodStart = LocalDate.of(2022, 4,13);
 
         LocalDate secondPeriodEnd = LocalDate.of(2023, 1,1);
@@ -381,7 +426,12 @@ public class UPLPParser {
         return issueEndDate.isAfter(secondPeriodStart.minusDays(1)) && issueEndDate.isBefore(secondPeriodEnd.plusDays(1));
     }
 
-    private static String parseRecipient(String[] words){
+    /**
+     * Парсинг атрибута "Правообладатель или иной получатель ГПЗУ"
+     * @param words массив строк
+     * @return атрибут правообладателя
+     */
+    private String parseRecipient(String[] words){
         int i = 0;
 
         int start = 0;
@@ -416,7 +466,12 @@ public class UPLPParser {
         return line;
     }
 
-    private static String checkRecipientType(String recipient){
+    /**
+     * Проверка типа правообладателя. Возвращает атрибут "Тип правообладателя или получателя ГПЗУ"
+     * @param recipient имя правообладателя
+     * @return тип правообладателя
+     */
+    private String checkRecipientType(String recipient){
         recipient = recipient.toLowerCase();
             if(recipient.contains("фонд") ||
                     recipient.contains("фонда") ||
@@ -432,7 +487,7 @@ public class UPLPParser {
             }
     }
 
-    private static boolean checkRegion(String s){
+    private boolean checkRegion(String s){
         return !(s.startsWith("ул.")|| s.endsWith(" ул."))
                 && !s.startsWith("проезд")
                 && !s.startsWith("посёлок")
