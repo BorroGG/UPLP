@@ -1,11 +1,13 @@
 package org.skeleton.team.service.parser_dev;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.io.RandomAccessFile;
 import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.skeleton.team.entity.UplpDoc;
+import org.skeleton.team.mapper.UplpDocMapper;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -15,8 +17,10 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,7 +28,10 @@ import java.util.stream.Stream;
  * Парсер для документов ГПЗУ.
  */
 @Component
+@RequiredArgsConstructor
 public class UPLPParser {
+
+    private final UplpDocMapper uplpDocMapper;
 
     private static final String ISSUE_DATE_ACTUAL = "Действует";
     private static final String ISSUE_DATE_EXPIRED = "Срок действия истёк";
@@ -40,9 +47,13 @@ public class UPLPParser {
      * @return документ с парсенными полями
      * @throws IOException при ошибке работы с файлом
      */
-    public UplpDoc parsingUPLPFile(File file, StringBuilder parseErrors) throws IOException {
+    public List<UplpDoc> parsingUPLPFile(File file, StringBuilder parseErrors) throws IOException {
+        List<UplpDoc> docs = new ArrayList<>();
 
         UplpDoc uplpDoc = new UplpDoc();
+//        UplpDoc uplpDoc2 = uplpDocMapper.copyDocData(uplpDoc); TODO так копируем данные в новый объект
+
+        docs.add(uplpDoc);
 
         //Подготавливаем документ и получаем строку с текстом документа
         String parsedText = prepareFile(file);
@@ -100,13 +111,29 @@ public class UPLPParser {
 
         uplpDoc.setSubzonesAvailability(subzones);
 
+        parse58Attr(uplpDoc, parsedText);
         System.out.println("=============================");
 
         System.out.println();
 
         System.out.println(uplpDoc.toString());
 
-        return uplpDoc;
+        return docs;
+    }
+
+    private void parse58Attr(UplpDoc uplpDoc, String parsedText) {
+        if (parsedText.contains("3.2. Объекты, включенные в единый государственный реестр объектов культурного наследия (памятников \r\nистории и культуры) народов Российской Федерации")) {
+            String[] innerData = parsedText.split("3.2. Объекты, включенные в единый государственный реестр объектов культурного наследия \\(памятников \r\nистории и культуры\\) народов Российской Федерации");
+            String afterMathches = innerData[1];
+            if (afterMathches.toLowerCase().startsWith("\r\nне имеются") ||
+                    afterMathches.toLowerCase().startsWith("\r\nинформация отсутствует")) {
+                uplpDoc.setCloAvailability("Отсутствуют");
+            } else {
+                uplpDoc.setCloAvailability("Присутствуют");
+            }
+        } else {
+            uplpDoc.setCloAvailability("Отсутствуют");
+        }
     }
 
     /**

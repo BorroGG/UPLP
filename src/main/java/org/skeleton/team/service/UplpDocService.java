@@ -59,7 +59,7 @@ public interface UplpDocService {
      * @param id идентификатор документа ГПЗУ
      * @return документ ГПЗУ
      */
-    UplpDoc updateUplpDoc(MultipartFile multipartFile, Long id);
+    List<UplpDoc> updateUplpDoc(MultipartFile multipartFile, Long id);
 
     /**
      * Добавление xlsx данных объектов в поток данных ответа.

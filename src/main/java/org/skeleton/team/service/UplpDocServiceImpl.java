@@ -36,6 +36,7 @@ public class UplpDocServiceImpl implements UplpDocService {
 
     /**
      * Получение документа ГПЗУ по ИД.
+     *
      * @param id идентификатор документа ГПЗУ
      * @return документ ГПЗУ
      */
@@ -47,6 +48,7 @@ public class UplpDocServiceImpl implements UplpDocService {
 
     /**
      * Получение нескольких документов ГПЗУ по ИД.
+     *
      * @param ids идентификаторы документов ГПЗУ
      * @return документы ГПЗУ
      */
@@ -58,6 +60,7 @@ public class UplpDocServiceImpl implements UplpDocService {
 
     /**
      * Получение всех документов ГПЗУ.
+     *
      * @return документы ГПЗУ
      */
     @Override
@@ -68,6 +71,7 @@ public class UplpDocServiceImpl implements UplpDocService {
 
     /**
      * Получение простых документов ГПЗУ по ИД.
+     *
      * @param ids идентификаторы документов ГПЗУ
      * @return документы ГПЗУ в формате без системных полей
      */
@@ -79,6 +83,7 @@ public class UplpDocServiceImpl implements UplpDocService {
 
     /**
      * Удаление документа ГПЗУ по ИД.
+     *
      * @param id идентификатор документа ГПЗУ
      * @return документ ГПЗУ
      */
@@ -99,6 +104,7 @@ public class UplpDocServiceImpl implements UplpDocService {
 
     /**
      * Получение нескольких документов ГПЗУ из PDF-файлов.
+     *
      * @param multipartFiles файлы в формате PDF
      * @return документы ГПЗУ
      */
@@ -107,7 +113,7 @@ public class UplpDocServiceImpl implements UplpDocService {
     public List<UplpDoc> createUplpDocs(List<MultipartFile> multipartFiles) {
         List<UplpDoc> result = new ArrayList<>();
         String realPathtoUploads = request.getServletContext().getRealPath("/files/");
-        if(!new File(realPathtoUploads).exists()) {
+        if (!new File(realPathtoUploads).exists()) {
             if (!new File(realPathtoUploads).mkdir()) {
                 throw new RuntimeException("Не удалось создать директорию для хранения фалйов");
             }
@@ -121,7 +127,10 @@ public class UplpDocServiceImpl implements UplpDocService {
                 File file = new File(filePath);
                 multipartFile.transferTo(file);
 
-                result.add(uplpDocRepository.save(parseFile(orgName, loadTime, file)));
+                List<UplpDoc> docs = uplpDocRepository.saveAll(parseFile(orgName, loadTime, file));
+                Long docId = docs.get(0).getUplpDocId();
+                docs.forEach(uplpDoc -> uplpDoc.setObjectZoneNo(docId + ":" + uplpDoc.getUplpDocId()));
+                result.addAll(uplpDocRepository.saveAll(docs));
             } catch (Exception e) {
                 throw new RuntimeException("Критическая ошибка обработки файлов: " + e.getMessage());
             }
@@ -131,15 +140,16 @@ public class UplpDocServiceImpl implements UplpDocService {
 
     /**
      * Удаление старого и загрузка нового документа ГПЗУ из PDF-файла.
+     *
      * @param multipartFile новый документ в формате PDF
-     * @param id идентификатор документа ГПЗУ
+     * @param id            идентификатор документа ГПЗУ
      * @return документ ГПЗУ
      */
     @Override
     @Transactional
-    public UplpDoc updateUplpDoc(MultipartFile multipartFile, Long id) {
+    public List<UplpDoc> updateUplpDoc(MultipartFile multipartFile, Long id) {
         String realPathtoUploads = request.getServletContext().getRealPath("/files/");
-        if(!new File(realPathtoUploads).exists()) {
+        if (!new File(realPathtoUploads).exists()) {
             if (!new File(realPathtoUploads).mkdir()) {
                 throw new RuntimeException("Не удалось создать директорию для хранения фалйов");
             }
@@ -152,7 +162,11 @@ public class UplpDocServiceImpl implements UplpDocService {
             File file = new File(filePath);
             multipartFile.transferTo(file);
 
-            return uplpDocRepository.save(parseFile(orgName, loadTime, file));
+            List<UplpDoc> docs = uplpDocRepository.saveAll(parseFile(orgName, loadTime, file));
+            Long docId = docs.get(0).getUplpDocId();
+            docs.forEach(uplpDoc -> uplpDoc.setObjectZoneNo(docId + ":" + uplpDoc.getUplpDocId()));
+
+            return uplpDocRepository.saveAll(docs);
         } catch (Exception e) {
             throw new RuntimeException("Критическая ошибка обработки файлов: " + e.getMessage());
         }
@@ -160,7 +174,8 @@ public class UplpDocServiceImpl implements UplpDocService {
 
     /**
      * Добавление xlsx данных объектов в поток данных ответа.
-     * @param ids ИД документов ГПЗУ
+     *
+     * @param ids          ИД документов ГПЗУ
      * @param outputStream поток данных для вывода ответа
      */
     @Override
@@ -172,7 +187,8 @@ public class UplpDocServiceImpl implements UplpDocService {
 
     /**
      * Добавление xml данных объектов в поток данных ответа.
-     * @param ids ИД документов ГПЗУ
+     *
+     * @param ids          ИД документов ГПЗУ
      * @param outputStream поток данных ответа
      */
     @Override
@@ -182,24 +198,26 @@ public class UplpDocServiceImpl implements UplpDocService {
         uplpDocConverter.convertUplpDocsToXmlStream(simpleDocs, outputStream);
     }
 
-    private UplpDoc parseFile(String fileName, Date loadTime, File file) throws IOException {
+    private List<UplpDoc> parseFile(String fileName, Date loadTime, File file) throws IOException {
         StringBuilder parseErrors = new StringBuilder();
 
-        UplpDoc uplpDoc = uplpParser.parsingUPLPFile(file, parseErrors);
+        List<UplpDoc> uplpDocs = uplpParser.parsingUPLPFile(file, parseErrors);
 
-        UplpLog uplpLog = new UplpLog();
-        uplpLog.setFileName(fileName);
-        uplpLog.setLoadDttm(loadTime);
-        uplpLog.setProcessDttm(new Timestamp(System.currentTimeMillis()));
-        uplpDoc.setFileReference(file.getAbsolutePath());
-        if (parseErrors.length() == 0) {
-            uplpLog.setProcessResult("Успешно");
-        } else {
-            uplpLog.setProcessResult("Неуспешно");
-            uplpLog.setErrors(parseErrors.toString());
+        for (UplpDoc uplpDoc : uplpDocs) {
+            UplpLog uplpLog = new UplpLog();
+            uplpLog.setFileName(fileName);
+            uplpLog.setLoadDttm(loadTime);
+            uplpLog.setProcessDttm(new Timestamp(System.currentTimeMillis()));
+            uplpDoc.setFileReference(file.getAbsolutePath());
+            if (parseErrors.length() == 0) {
+                uplpLog.setProcessResult("Успешно");
+            } else {
+                uplpLog.setProcessResult("Неуспешно");
+                uplpLog.setErrors(parseErrors.toString());
+            }
+            uplpLog = uplpLogRepository.save(uplpLog);
+            uplpDoc.setUplpLog(uplpLog);
         }
-        uplpLog = uplpLogRepository.save(uplpLog);
-        uplpDoc.setUplpLog(uplpLog);
-        return uplpDoc;
+        return uplpDocs;
     }
 }

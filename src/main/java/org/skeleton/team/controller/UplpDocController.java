@@ -207,15 +207,15 @@ public class UplpDocController {
      */
     @PutMapping("/{id}")
     @Operation(summary = "Удаление старого и загрузка нового документа ГПЗУ из ПДФ файла")
-    public ResponseEntity<UplpDoc> updateUplpDoc(
+    public ResponseEntity<List<UplpDoc>> updateUplpDoc(
             @Parameter(description = "Загружаемый файл", required = true)
             @RequestParam("file") MultipartFile file,
             @Parameter(description = "Идентификатор документа ГПЗУ", required = true)
             @PathVariable final Long id
     ) {
-        UplpDoc doc = uplpDocService.updateUplpDoc(file, id);
-        if (doc != null) {
-            return ResponseEntity.ok(doc);
+        List<UplpDoc> docs = uplpDocService.updateUplpDoc(file, id);
+        if (docs != null && !docs.isEmpty()) {
+            return ResponseEntity.ok(docs);
         }
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
     }

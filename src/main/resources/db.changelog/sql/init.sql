@@ -66,6 +66,7 @@ create table if not exists uplp_doc
     operator_name                                  varchar(128) null,
     actualisation_date                             date         null,
     file_reference                                 varchar(128) not null,
+    object_zone_no                                 varchar(128) null,
     uplp_log_id                                    bigint       not null,
     constraint pk_uplp_doc primary key (uplp_doc_id)
     );
@@ -204,6 +205,8 @@ comment on column uplp_doc.actualisation_date is
     'Дата актуализации документа';
 comment on column uplp_doc.file_reference is
     'Ссылка на исходный файл в системе';
+comment on column uplp_doc.object_zone_no is
+    'Номер зоны объектов';
 comment on column uplp_doc.uplp_log_id is
     'ИД лога обработки';
 

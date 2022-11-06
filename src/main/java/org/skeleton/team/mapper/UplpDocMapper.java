@@ -25,4 +25,11 @@ public interface UplpDocMapper {
      * @return документы ГПЗУ в простом формате без системных полей
      */
     List<UplpSimpleDoc> toSimpleDoc(List<UplpDoc> doc);
+
+    /**
+     * Маппинг полей документа ГПЗУ.
+     * @param doc документ ГПЗУ
+     * @return документ ГПЗУ
+     */
+    UplpDoc copyDocData(UplpDoc doc);
 }

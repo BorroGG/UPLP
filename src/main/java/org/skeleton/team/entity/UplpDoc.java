@@ -326,6 +326,10 @@ public class UplpDoc {
     @JsonIgnore
     private String fileReference;
 
+    @Schema(description = "Ссылка на исходный файл в системе")
+    @Column(name = "object_zone_no")
+    private String objectZoneNo;
+
     @Schema(description = "Логи обработки документа ГПЗУ")
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "uplp_log_id", referencedColumnName = "uplp_log_id")
