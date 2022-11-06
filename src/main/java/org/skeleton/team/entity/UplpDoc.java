@@ -326,7 +326,7 @@ public class UplpDoc {
     @JsonIgnore
     private String fileReference;
 
-    @Schema(description = "Ссылка на исходный файл в системе")
+    @Schema(description = "Зона объекта, объект зоны ИД : текущий объект ИД")
     @Column(name = "object_zone_no")
     private String objectZoneNo;
 

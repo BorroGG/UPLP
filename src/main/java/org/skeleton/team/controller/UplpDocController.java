@@ -73,11 +73,7 @@ public class UplpDocController {
     @GetMapping("/all")
     @Operation(summary = "Получение всех документов ГПЗУ")
     public ResponseEntity<List<UplpDoc>> getAllUplpDocs() {
-        List<UplpDoc> docs = uplpDocService.getAllUplpDocs();
-        if (docs != null && !docs.isEmpty()) {
-            return ResponseEntity.ok(docs);
-        }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(uplpDocService.getAllUplpDocs());
     }
 
     /**

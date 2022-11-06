@@ -112,6 +112,12 @@ public class UPLPParser {
         uplpDoc.setSubzonesAvailability(subzones);
 
         parse58Attr(uplpDoc, parsedText);
+        if (uplpDoc.getCloAvailability().equals("Отсутствуют")) {
+            uplpDoc.setCboTotalCount("0");
+            uplpDoc.setCloDescription("Нет");
+            uplpDoc.setCloIdentificationNo("Нет");
+            uplpDoc.setCloRegistrationNo("Нет");
+        }
         System.out.println("=============================");
 
         System.out.println();
