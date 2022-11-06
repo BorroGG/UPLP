@@ -18,7 +18,7 @@ public class TestingInstance {
 
         parser = new UPLPParser();
 
-        UplpDoc doc = parser.parsingUPLPFile(file);
+        UplpDoc doc = parser.parsingUPLPFile(file, new StringBuilder());
 
         /* Метод парсит все ГПЗУ файлы в пределах корневого каталога проекта */
         //parseAll();
@@ -32,7 +32,7 @@ public class TestingInstance {
         for(String uplp : file.list()){
             if(uplp.endsWith(".pdf")) {
                 File uplpFile = new File(uplp);
-                parser.parsingUPLPFile(uplpFile);
+                parser.parsingUPLPFile(uplpFile, new StringBuilder());
             }
         }
     }

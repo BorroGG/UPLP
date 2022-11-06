@@ -6,6 +6,7 @@ import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.skeleton.team.entity.UplpDoc;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +20,10 @@ import java.util.Date;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Парсер для документов ГПЗУ.
+ */
+@Component
 public class UPLPParser {
 
     private static final String ISSUE_DATE_ACTUAL = "Действует";
@@ -29,17 +34,15 @@ public class UPLPParser {
     public static final String SUT_MIXED = "Смешанная";
     public static final String SUT_LIVING = "Жилая";
 
-    private UplpDoc uplpDoc;
-
     /**
      * Производит последовательный парсинг документа согласно требуемому регламенту и возвращает сущность документа с заполненными полями.
      * @param file - pdf-документ ГПЗУ для парсинга
      * @return документ с парсенными полями
-     * @throws IOException
+     * @throws IOException при ошибке работы с файлом
      */
-    public UplpDoc parsingUPLPFile(File file) throws IOException {
+    public UplpDoc parsingUPLPFile(File file, StringBuilder parseErrors) throws IOException {
 
-        uplpDoc = new UplpDoc();
+        UplpDoc uplpDoc = new UplpDoc();
 
         //Подготавливаем документ и получаем строку с текстом документа
         String parsedText = prepareFile(file);
@@ -48,37 +51,52 @@ public class UPLPParser {
         String[] words = parsedText.split("\n|\r\n");
 
         //Парсинг первых пяти атрибутов
-        parse1to5Attributes(words);
+        parse1to5Attributes(uplpDoc, words, parseErrors);
 
         //TODO достать библиотеку склонений
 
         uplpDoc.setUplpRecipient(parseRecipient(words));
+        if (uplpDoc.getUplpRecipient().equals("-")) {
+            parseErrors.append("Не найден Правообладатель или иной получатель ГПЗУ.\n");
+        }
 
         uplpDoc.setRecipientType(checkRecipientType(uplpDoc.getUplpRecipient()));
+        if (uplpDoc.getRecipientType().equals("-")) {
+            parseErrors.append("Не найден Тип правообладателя или получателя ГПЗУ.\n");
+        }
 
         //TODO парсинг округа и района
 
         String s = parseBuildingAddress(words);
 
         uplpDoc.setBuildingAddress(s);
+        if (uplpDoc.getBuildingAddress().equals("-")) {
+            parseErrors.append("Не найден Строительный адрес.\n");
+        }
 
-        parseCadastralNumber(words);
+        parseCadastralNumber(uplpDoc, words);
 
         String availability = parseAvailability(words);
 
         uplpDoc.setTlpProjectAvailability(availability);
+        if (uplpDoc.getTlpProjectAvailability().equals("-")) {
+            parseErrors.append("Не найдено Наличие проекта планоровки территории (ППТ) в границах ГПЗУ.\n");
+        }
 
         //TODO парсинг Реквизиты документа ППТ
 
         //TODO парсинг Реквизиты межевания
 
-        String codesVRI = parseSutCodes(parsedText);
+        String codesVRI = parseSutCodes(uplpDoc, parsedText);
 
         uplpDoc.setSutCodes(codesVRI);
+        if (uplpDoc.getSutCodes().equals("-")) {
+            parseErrors.append("Не найдены Коды основных видов разрешенного использования (ВРИ) зумельного участка (ЗУ).\n");
+        }
 
-        parsePlotArea(words);
+        parsePlotArea(uplpDoc, words, parseErrors);
 
-        String subzones = parseSubzones(words);
+        String subzones = parseSubzones(uplpDoc, words);
 
         uplpDoc.setSubzonesAvailability(subzones);
 
@@ -98,7 +116,7 @@ public class UPLPParser {
      * @param words текстовый массив строк документов
      * @return текст с номерами подзон
      */
-    private String parseSubzones(String[] words) {
+    private String parseSubzones(UplpDoc uplpDoc, String[] words) {
         String subzones = "";
 
         String areaSquare = "";
@@ -150,13 +168,16 @@ public class UPLPParser {
      * Парсинг атрибута "Площадь земельного  участка (ЗУ), кв.м"
      * @param words текстовый массив документа
      */
-    private void parsePlotArea(String[] words) {
+    private void parsePlotArea(UplpDoc uplpDoc, String[] words, StringBuilder parseErrors) {
         for(String word : words){
             if(word.matches("\\d+ ± \\d.+|\\d+. кв.м")){
                 String plotArea = word.split(" ")[0];
                 System.out.println(plotArea);
                 uplpDoc.setPlotArea(Integer.parseInt(plotArea));
             }
+        }
+        if (uplpDoc.getPlotArea() == null) {
+            parseErrors.append("Не найдена Площадь земельного участка (ЗУ), кв.м.\n");
         }
     }
 
@@ -187,7 +208,7 @@ public class UPLPParser {
      * @param parsedText "сырая" строка с текстом документа
      * @return атрибут "Коды основных видов разрешенного использования (ВРИ) земельного  участка (ЗУ)"
      */
-    private String parseSutCodes(String parsedText) {
+    private String parseSutCodes(UplpDoc uplpDoc, String parsedText) {
         String[] words;
         words = parsedText.split(" ");
 
@@ -272,7 +293,7 @@ public class UPLPParser {
      * Парсинг атрибута "Кадастровый номер земельного участка (ЗУ) или условный номер"
      * @param words текстовый массив документа
      */
-    private void parseCadastralNumber(String[] words) {
+    private void parseCadastralNumber(UplpDoc uplpDoc, String[] words) {
         for(String word : words){//77:06:0003002:70 //02/01/10179
             if(word.matches("\\d{2}:\\d{2}:\\d{7}:\\d+")
                     || word.matches("\\d{2}/\\d{2}/\\d{5}")
@@ -327,7 +348,7 @@ public class UPLPParser {
      * - Срок действия ГПЗУ<br>
      * @param words набор строк из документа
      */
-    private void parse1to5Attributes(String[] words){
+    private void parse1to5Attributes(UplpDoc uplpDoc, String[] words, StringBuilder parseErrors){
         for(String word : words) {
             if (word.startsWith("№ RU")) {
                 uplpDoc.setUplpNo(parseNumber(word));
@@ -360,6 +381,18 @@ public class UPLPParser {
             if (word.contains("обращения")) {
                 System.out.println(word);
             }
+        }
+        if (uplpDoc.getUplpNo().equals("-")) {
+            parseErrors.append("Не найден номер ГПЗУ.\n");
+        }
+        if (uplpDoc.getDateOfIssue() == null) {
+            parseErrors.append("Не найдена Дата выдачи ГПЗУ.\n");
+        }
+        if (uplpDoc.getExpiryDate() == null) {
+            parseErrors.append("Не найден Срок действия ГПЗУ.\n");
+        }
+        if (uplpDoc.getUplpStatus().equals("-")) {
+            parseErrors.append("Не найден Статус ГПЗУ.\n");
         }
     }
 

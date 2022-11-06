@@ -27,6 +27,12 @@ public interface UplpDocService {
     List<UplpDoc> getUplpDocByIds(List<Long> ids);
 
     /**
+     * Получение всех документов ГПЗУ.
+     * @return документы ГПЗУ
+     */
+    List<UplpDoc> getAllUplpDocs();
+
+    /**
      * Получение простых документов ГПЗУ по ИД.
      * @param ids идентификаторы документов ГПЗУ
      * @return документы ГПЗУ в формате без системных полей

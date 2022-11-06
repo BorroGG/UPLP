@@ -67,6 +67,20 @@ public class UplpDocController {
     }
 
     /**
+     * Получение всех документов ГПЗУ.
+     * @return документы ГПЗУ
+     */
+    @GetMapping("/all")
+    @Operation(summary = "Получение всех документов ГПЗУ")
+    public ResponseEntity<List<UplpDoc>> getAllUplpDocs() {
+        List<UplpDoc> docs = uplpDocService.getAllUplpDocs();
+        if (docs != null && !docs.isEmpty()) {
+            return ResponseEntity.ok(docs);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    /**
      * Операция получения нескольких документов ГПЗУ по ИД в формате xlsx.
      * @param ids Идентификаторы документов ГПЗУ
      * @param response документы в формате xlsx
