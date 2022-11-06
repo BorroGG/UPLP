@@ -2,14 +2,14 @@ server:
   port: 8081
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/uplp
-    password: root
-    username: admin
+    url: jdbc:postgresql://10.5.0.5:5432/uplp
+    password: 9znBik0WfBk|8NxF
+    username: gpzu
   liquibase:
     enabled: true
-    url: jdbc:postgresql://localhost:5432/uplp
-    password: root
-    user: admin
+    url: jdbc:postgresql://10.5.0.5:5432/uplp
+    password: 9znBik0WfBk|8NxF
+    user: gpzu
     default-schema: public
     liquibase-schema: public
     change-log: classpath*:db.changelog/master.xml
@@ -21,6 +21,3 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 5000MB
-logging:
-  level:
-    root: INFO

@@ -1,0 +1,42 @@
+version: "3.2"
+services:
+
+  backend-app:
+    ports:
+      - "8081:8081"
+      - "8080:8080"
+      
+    networks:
+      vpcbr:
+        ipv4_address: 10.5.0.6
+    restart: always
+    build: ..
+    
+  postgres:
+    image: postgres:14.1-alpine
+    environment:
+      POSTGRES_USER: "gpzu"
+      POSTGRES_PASSWORD: "9znBik0WfBk|8NxF"
+      POSTGRES_DB: "uplp"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    ports:
+      - "5432:5432"
+      
+    networks:
+      vpcbr:
+        ipv4_address: 10.5.0.5
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - .sql_scripts:/docker-entrypoint-initdb.d
+
+volumes:
+  db-data:
+  
+  
+networks:
+  vpcbr:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 10.5.0.0/16
+         gateway: 10.5.0.1

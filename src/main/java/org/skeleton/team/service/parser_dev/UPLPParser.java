@@ -1,6 +1,7 @@
 package org.skeleton.team.service.parser_dev;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.io.RandomAccessFile;
 import org.apache.pdfbox.pdfparser.PDFParser;
@@ -18,11 +19,11 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
 /**
@@ -44,6 +45,7 @@ public class UPLPParser {
 
     /**
      * Производит последовательный парсинг документа согласно требуемому регламенту и возвращает сущность документа с заполненными полями.
+     *
      * @param file - pdf-документ ГПЗУ для парсинга
      * @return документ с парсенными полями
      * @throws IOException при ошибке работы с файлом
@@ -52,7 +54,6 @@ public class UPLPParser {
         List<UplpDoc> docs = new ArrayList<>();
 
         UplpDoc uplpDoc = new UplpDoc();
-//        UplpDoc uplpDoc2 = uplpDocMapper.copyDocData(uplpDoc); TODO так копируем данные в новый объект
 
         docs.add(uplpDoc);
 
@@ -108,15 +109,18 @@ public class UPLPParser {
 
         parsePlotArea(uplpDoc, words, parseErrors);
 
-        parse58Attr(uplpDoc, parsedText);
-        if (uplpDoc.getCloAvailability().equals("Отсутствуют")) {
-            uplpDoc.setCboTotalCount("0");
-            uplpDoc.setCloDescription("Нет");
-            uplpDoc.setCloIdentificationNo("Нет");
-            uplpDoc.setCloRegistrationNo("Нет");
-        }
-
         parseSubzones(docs, uplpDoc, words, parseErrors);
+
+        uplpDoc.setExistingCboAvailability(getExistingCboAvailability(words));
+        uplpDoc.setExistingCboTotalCount(getExistingCboTotalCount(words));
+        uplpDoc.setExistingCboPurpose(getExistingCboPurpose(words));
+        uplpDoc.setExistingCboDescription(getExistingCboDescription(words));
+        uplpDoc.setExistingCboMaxFloorCount(getExistingCboMaxFloorCount(words));
+        uplpDoc.setExistingCboTotalArea(getExistingCboTotalArea(words));
+        uplpDoc.setExistingCboResidentialObjectsArea(getExistingCboResidentialObjectsArea(words));
+        uplpDoc.setExistingCboNonResidentialObjectsArea(getExistingCboNonResidentialObjectsArea(words));
+
+        parse58_62Attr(uplpDoc, parsedText);
 
         System.out.println("=============================");
 
@@ -138,12 +142,12 @@ public class UPLPParser {
         return word;
     }
 
-    private void parse58Attr(UplpDoc uplpDoc, String parsedText) {
+    private void parse58_62Attr(UplpDoc uplpDoc, String parsedText) {
         if (parsedText.contains("3.2. Объекты, включенные в единый государственный реестр объектов культурного наследия (памятников \r\nистории и культуры) народов Российской Федерации")) {
             String[] innerData = parsedText.split("3.2. Объекты, включенные в единый государственный реестр объектов культурного наследия \\(памятников \r\nистории и культуры\\) народов Российской Федерации");
-            String afterMathches = innerData[1];
-            if (afterMathches.toLowerCase().startsWith("\r\nне имеются") ||
-                    afterMathches.toLowerCase().startsWith("\r\nинформация отсутствует")) {
+            String afterMatches = innerData[1];
+            if (afterMatches.toLowerCase().startsWith("\r\nне имеются") ||
+                    afterMatches.toLowerCase().startsWith("\r\nинформация отсутствует")) {
                 uplpDoc.setCloAvailability("Отсутствуют");
             } else {
                 uplpDoc.setCloAvailability("Присутствуют");
@@ -151,6 +155,188 @@ public class UPLPParser {
         } else {
             uplpDoc.setCloAvailability("Отсутствуют");
         }
+        if (uplpDoc.getCloAvailability().equals("Отсутствуют")) {
+            uplpDoc.setCboTotalCount("0");
+            uplpDoc.setCloDescription("Нет");
+            uplpDoc.setCloIdentificationNo("Нет");
+            uplpDoc.setCloRegistrationNo("Нет");
+        } else {
+            String[] innerData = parsedText.split("3.2. Объекты, включенные в единый государственный реестр объектов культурного наследия \\(памятников \r\nистории и культуры\\) народов Российской Федерации");
+            String afterMatches = innerData[1].split("4. Информация о расчетных показателях минимально допустимого уровня обеспеченности")[0];
+            String[] numbers = afterMatches.split("на чертеже ГПЗУ");
+            uplpDoc.setCboTotalCount(numbers.length - 1 + "");
+            StringBuilder sb = new StringBuilder();
+            for (String number : numbers) {
+                number = number.replace("\r\n", " ");
+                Pattern p60 = Pattern.compile(".*Наименование .{1,15}: (.*); .*");
+                Matcher m60 = p60.matcher(number);
+                if (m60.matches()) {
+                    if (sb.toString().length() == 0) {
+                        sb.append(m60.group(1).split(";")[0]);
+                    } else {
+                        sb.append(";").append(m60.group(1).split(";")[0]);
+                    }
+                }
+            }
+            uplpDoc.setCloDescription(sb.toString().equals("") ? "-" : sb.toString());
+            sb = new StringBuilder();
+            for (String number : numbers) {
+                number = number.replace("\r\n", " ");
+                Pattern p61 = Pattern.compile(".*Идентификационный .{1,20}: (.*); .*");
+                Matcher m61 = p61.matcher(number);
+                if (m61.matches()) {
+                    if (sb.toString().length() == 0) {
+                        sb.append(m61.group(1).split(";")[0]);
+                    } else {
+                        sb.append(";").append(m61.group(1).split(";")[0]);
+                    }
+                }
+            }
+            uplpDoc.setCloIdentificationNo(sb.toString().equals("") ? "-" : sb.toString());
+            sb = new StringBuilder();
+            for (String number : numbers) {
+                number = number.replace("\r\n", " ");
+                Pattern p62 = Pattern.compile(".*Регистрационный .{1,15}: (.*); .*");
+                Matcher m62 = p62.matcher(number);
+                if (m62.matches()) {
+                    if (sb.toString().length() == 0) {
+                        sb.append(m62.group(1).split(";")[0]);
+                    } else {
+                        sb.append(";").append(m62.group(1).split(";")[0]);
+                    }
+                }
+            }
+            uplpDoc.setCloRegistrationNo(sb.toString().equals("") ? "-" : sb.toString());
+        }
+    }
+
+    private String getExistingCboAvailability(String[] words) {
+        if (String.join(" ", words).contains("Объекты капитального строительства отсутсвуют")) {
+            return "Отсутствуют";
+        }
+        if (String.join(" ", words)
+                .contains("В границах земельного участка расположены объекты капитального строительства")) {
+            return "Присутствуют";
+        }
+        return "-";
+    }
+
+    private String getExistingCboTotalCount(String[] words) {
+        if (Objects.equals(getExistingCboAvailability(words), "Отсутствуют")) {
+            return "0";
+        }
+        Pattern p = Pattern.compile("В границах земельного участка расположены объекты капитального строительства\\. Количество {0,2}объектов (\\d+) единиц");
+        Matcher m = p.matcher(String.join(" ", words));
+        if (m.find()) {
+            return m.group(1);
+        }
+        return "0";
+    }
+
+    private String getExistingCboPurpose(String[] words) {
+        if (Objects.equals(getExistingCboAvailability(words), "Отсутствуют")) {
+            return "Нет";
+        }
+        String join = String.join(" ", words);
+        int count = StringUtils.countMatches(join.substring(
+                join.lastIndexOf("3.1. Объекты капитального строительства"),
+                join.lastIndexOf("3.2. Объекты, включенные в")), "на чертеже ГПЗУ");
+        if (String.join(" ", words).contains("Нежилое")
+                && StringUtils.countMatches(String.join(" ", words), "Нежилое") == count) {
+            return "Нежилое";
+        }
+        if (String.join(" ", words).contains("Нежилое")
+                && StringUtils.countMatches(String.join(" ", words), "Нежилое") != count) {
+            return "Смешанное";
+        }
+        return "Жилое";
+    }
+
+    private String getExistingCboDescription(String[] words) {
+        if (Objects.equals(getExistingCboAvailability(words), "Отсутствуют")) {
+            return "Нет";
+        }
+        Pattern p = Pattern.compile(" на чертеже ГПЗУ (.{1,30}) Адрес:");
+        Matcher m = p.matcher(String.join(" ", words));
+        List<String> names = new ArrayList<>();
+        if (m.find()) {
+            names.add(m.group(1).trim());
+        }
+        return names.isEmpty() ? "-" : String.join(", ", names);
+    }
+
+    private int getExistingCboMaxFloorCount(String[] words) {
+        if (Objects.equals(getExistingCboAvailability(words), "Отсутствуют")) {
+            return 0;
+        }
+        Pattern p = Pattern.compile("Количество этажей: (\\d+)");
+        Matcher m = p.matcher(String.join(" ", words));
+        int max = 0;
+        if (m.find()) {
+            int flours = Integer.parseInt(m.group(1));
+            if (flours > max) {
+                max = flours;
+            }
+        }
+        return max;
+    }
+
+    private BigDecimal getExistingCboTotalArea(String[] words) {
+        if (Objects.equals(getExistingCboAvailability(words), "Отсутствуют")) {
+            return BigDecimal.ZERO;
+        }
+        Pattern p = Pattern.compile("Площадь: (\\d+,?.?\\d*)");
+        Matcher m = p.matcher(String.join(" ", words));
+        List<Double> squares = new ArrayList<>();
+        while (m.find()) {
+            squares.add(Double.parseDouble(m.group(1)));
+        }
+        return BigDecimal.valueOf(DoubleStream.of(squares.stream()
+                        .mapToDouble(d -> d)
+                        .toArray())
+                .average()
+                .orElse(0));
+    }
+
+    private BigDecimal getExistingCboResidentialObjectsArea(String[] words) {
+        if (Objects.equals(getExistingCboAvailability(words), "Отсутствуют")
+                || getExistingCboPurpose(words).equals("Нежилое")) {
+            return BigDecimal.ZERO;
+        }
+        Pattern p = Pattern.compile("Назначение: .{1,100}; Площадь: (\\d+,?.?\\d*)");
+        Matcher m = p.matcher(String.join(" ", words));
+        List<Double> squares = new ArrayList<>();
+        while (m.find()) {
+            if (m.group(0).contains("Нежилое")) {
+                continue;
+            }
+            squares.add(Double.parseDouble(m.group(1)));
+        }
+        return BigDecimal.valueOf(DoubleStream.of(squares.stream()
+                        .mapToDouble(d -> d)
+                        .toArray())
+                .average()
+                .orElse(0));
+    }
+
+    private BigDecimal getExistingCboNonResidentialObjectsArea(String[] words) {
+        if (Objects.equals(getExistingCboAvailability(words), "Отсутствуют")
+                || getExistingCboPurpose(words).equals("Жилое")) {
+            return BigDecimal.ZERO;
+        }
+        Pattern p = Pattern.compile("Назначение: .{1,100}; Площадь: (\\d+,?.?\\d*)");
+        Matcher m = p.matcher(String.join(" ", words));
+        List<Double> squares = new ArrayList<>();
+        while (m.find()) {
+            if (m.group(0).contains("Нежилое")) {
+                squares.add(Double.parseDouble(m.group(1)));
+            }
+        }
+        return BigDecimal.valueOf(DoubleStream.of(squares.stream()
+                        .mapToDouble(d -> d)
+                        .toArray())
+                .average()
+                .orElse(0));
     }
 
     /**
@@ -404,6 +590,7 @@ public class UPLPParser {
     /**
      * Открывает файл и обрабатывает структуру документа с помощью внешней библиотеки парсинга.
      * Возвращает полученный текст в формате одной переменной
+     *
      * @param file pdf-документ ГПЗУ для парсинга
      * @return текст документа в формате строки с переносами
      * @throws IOException
@@ -425,6 +612,7 @@ public class UPLPParser {
     /**
      * Парсинг атрибута "Наименование условной группы использования ЗУ по ВРИ"
      * Заполняет соответствующее поле в документе и возвращает набор кодов.
+     *
      * @param parsedText "сырая" строка с текстом документа
      * @return атрибут "Коды основных видов разрешенного использования (ВРИ) земельного  участка (ЗУ)"
      */
@@ -486,6 +674,7 @@ public class UPLPParser {
 
     /**
      * Парсинг атрибута "Наличие проекта планировки территории (ППТ) в границах ГПЗУ реквизиты документа"
+     *
      * @param words текстовый массив документа
      * @return строка наличия проекта планировки
      */
@@ -512,6 +701,7 @@ public class UPLPParser {
 
     /**
      * Парсинг атрибута "Кадастровый номер земельного участка (ЗУ) или условный номер"
+     *
      * @param words текстовый массив документа
      */
     private void parseCadastralNumber(UplpDoc uplpDoc, String[] words) {
@@ -530,6 +720,7 @@ public class UPLPParser {
 
     /**
      * Парсинг атрибута "Строительный адрес"
+     *
      * @param words массив строк документа
      * @return строительный адрес
      */
@@ -675,6 +866,7 @@ public class UPLPParser {
 
     /**
      * Парсинг атрибута "Правообладатель или иной получатель ГПЗУ"
+     *
      * @param words массив строк
      * @return атрибут правообладателя
      */
@@ -715,6 +907,7 @@ public class UPLPParser {
 
     /**
      * Проверка типа правообладателя. Возвращает атрибут "Тип правообладателя или получателя ГПЗУ"
+     *
      * @param recipient имя правообладателя
      * @return тип правообладателя
      */
