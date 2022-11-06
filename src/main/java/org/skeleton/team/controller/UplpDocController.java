@@ -176,19 +176,19 @@ public class UplpDocController {
 
     /**
      * Операция получения одного или нескольких документов ГПЗУ из PDF-файлов.
-     * @param file документы ГПЗУ в формате PDF
+     * @param files документы ГПЗУ в формате PDF
      * @return документы ГПЗУ
      */
     @PostMapping
     @Operation(summary = "Создание документа(ов) ГПЗУ из ПДФ файла")
     public ResponseEntity<List<UplpDoc>> createUplpDoc(
             @Parameter(description = "Загружаемые файлы", required = true)
-            @RequestBody List<MultipartFile> file
+            @RequestParam("file") List<MultipartFile> files
     ) {
-        if (file.size() > 1000) {
+        if (files.size() > 1000) {
             return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).build();
         }
-        List<UplpDoc> docs = uplpDocService.createUplpDocs(file);
+        List<UplpDoc> docs = uplpDocService.createUplpDocs(files);
         if (docs != null && !docs.isEmpty()) {
             return ResponseEntity.ok(docs);
         }
