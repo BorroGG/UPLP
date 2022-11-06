@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -107,10 +108,6 @@ public class UPLPParser {
 
         parsePlotArea(uplpDoc, words, parseErrors);
 
-        String subzones = parseSubzones(uplpDoc, words);
-
-        uplpDoc.setSubzonesAvailability(subzones);
-
         parse58Attr(uplpDoc, parsedText);
         if (uplpDoc.getCloAvailability().equals("Отсутствуют")) {
             uplpDoc.setCboTotalCount("0");
@@ -118,13 +115,27 @@ public class UPLPParser {
             uplpDoc.setCloIdentificationNo("Нет");
             uplpDoc.setCloRegistrationNo("Нет");
         }
+
+        parseSubzones(docs, uplpDoc, words, parseErrors);
+
         System.out.println("=============================");
 
         System.out.println();
 
-        System.out.println(uplpDoc.toString());
-
         return docs;
+    }
+
+    private String getAreaPercentage(String word) {
+        if(word.contains("действие ")){
+            return "Действие градостроительного регламента не распространяется";
+        }
+        if(word.contains("без ")){
+            return "без ограничений";
+        }
+        if(word.contains("по ")){
+            return "по существующему положению";
+        }
+        return word;
     }
 
     private void parse58Attr(UplpDoc uplpDoc, String parsedText) {
@@ -143,58 +154,234 @@ public class UPLPParser {
     }
 
     /**
+     * Парсинг атрибута максимальная высота застройки
+     * @param parseErrors обнаруженные ошибки при парсинге
+     * @param uplpDoc сущность документа для внесения атрибута
+     * @param words текстовый массив строк
+     */
+    private void parseBuildingMaxHeight(StringBuilder parseErrors, UplpDoc uplpDoc, String[] words) {
+        int maxHeight = 0;
+
+        for(String word : words){
+            if(word.matches("\\(м\\.\\) - \\d+")){
+                maxHeight = Integer.parseInt(word.split(" - ")[1]);
+                uplpDoc.setBuildingMaxHeight(BigDecimal.valueOf(maxHeight));
+            }
+        }
+
+        if(uplpDoc.getBuildingMaxHeight() == null){
+            parseErrors.append("Не найдена Максимальная высота застройки, м.\n");
+        }
+    }
+
+    /**
      * Парсинг подзон и атрибутов:<br>
      * - Наличие подзон ЗУ, номера<br>
-     * - Площади подзон ЗУ, кв.м (пока только для одной подзоны)
+     * - Площади подзон ЗУ, кв.<br>
+     * Метод создаёт новый документ с подзонами и копирует туда общие атрибуты и заполняет соответствующими подзоне.
      * @param words текстовый массив строк документов
+     * @param docList список документов для добавления документов с подзонами
+     * @param uplpDoc текущий документ
+     * @param parseErrors найденные ошибки
      * @return текст с номерами подзон
      */
-    private String parseSubzones(UplpDoc uplpDoc, String[] words) {
+    private void parseSubzones(List<UplpDoc> docList, UplpDoc uplpDoc, String[] words, StringBuilder parseErrors) {
         String subzones = "";
 
         String areaSquare = "";
 
-        String metrics = "";
+        for(String word : words) {
+            if(word.matches("Подзона № \\d+.+")){
+                String zoneNumber = "№" + word.split(" ")[2];
 
-        for(String word : words){
-            if (word.matches("Подзона №.\\d+.+")){
-                subzones +=
-                        (subzones.length() > 0 ? "\n" : "")+
-                        "№ "+word.split(" ")[2];
-                areaSquare = word.split(" на чертеже ")[1];
-                System.out.println(word);
+                //System.out.println(zoneNumber);
 
-                metrics = areaSquare.split(" ")[1];
+                if(subzones.length() > 0){
+                    splitUPlpDocs(docList, uplpDoc, word.split(" на чертеже ")[1], zoneNumber, words, parseErrors);
 
-                metrics = metrics.substring(0, metrics.length()-2);
+                    subzones += zoneNumber;
 
-                System.out.println(metrics);
+                    uplpDoc.setSubzonesAvailability(subzones);
 
-                areaSquare = areaSquare.split(" ")[0].replace('(',' ').strip();
-
-                float area = 0f;
-
-                switch (metrics.toLowerCase()){
-                    case "га":{
-                        area = Float.parseFloat(areaSquare) * 10000;
-                        uplpDoc.setSubzonesArea((int) area);
-                        break;
-                    }
-                    case "кв.м":{
-                        uplpDoc.setSubzonesArea(Integer.parseInt(areaSquare));
-                        break;
-                    }
+                    continue;
                 }
 
-                System.out.println(""+area);
+                uplpDoc.setRecordNo(uplpDoc.getUplpNo() + zoneNumber.strip());
 
-                System.out.println(areaSquare);
+                subzones += zoneNumber;
+
+                uplpDoc.setSubzonesAvailability(subzones);
+
+                areaSquare = word.split(" на чертеже ")[1];
+
+                parseAreaSquare(uplpDoc, areaSquare);
+
+                //System.out.println(word);
+
+            } else if (word.matches("Подзона №\\d+.+")) {
+
+                String zoneNumber = "№" + word.split(" ")[1].replace('№',' ')+" ";
+
+                //System.out.println(word);
+
+                if(subzones.length() > 0){
+                    splitUPlpDocs(docList, uplpDoc, word.split(" на чертеже ")[1], zoneNumber, words, parseErrors);
+
+                    subzones += zoneNumber;
+
+                    uplpDoc.setSubzonesAvailability(subzones);
+
+                    continue;
+                }
+
+                uplpDoc.setRecordNo(uplpDoc.getUplpNo() + zoneNumber.strip());
+
+                subzones += zoneNumber;
+
+                uplpDoc.setSubzonesAvailability(subzones);
+
+                areaSquare = word.split(" на чертеже ")[1];
+
+                parseAreaSquare(uplpDoc, areaSquare);
+
+                //System.out.println(word);
+
+            } else if (word.matches("Подзона N\\d+.+")) {
+
+                String zoneNumber = "№" + word.split(" ")[1].substring(1);
+
+                if(subzones.length() > 0){
+                    splitUPlpDocs(docList, uplpDoc, word.split(" на чертеже ")[1], zoneNumber, words, parseErrors);
+
+                    subzones += zoneNumber;
+
+                    continue;
+                }
+
+                uplpDoc.setRecordNo(uplpDoc.getUplpNo() + zoneNumber.strip());
+
+                subzones += zoneNumber;
+
+                areaSquare = word.split(" на чертеже ")[1];
+
+                //System.out.println(subzones);
+
+                parseAreaSquare(uplpDoc, areaSquare);
+
+                parseBuildingMaxHeight(parseErrors, uplpDoc, words);
+
+                parseBuiltUpAreaPercentage(words, parseErrors, uplpDoc);
             }
         }
-        if(subzones.equals("")){
-              subzones = "нет";
-          }
-        return subzones;
+        if(subzones.equals("")) {
+            subzones = "нет";
+            uplpDoc.setSubzonesAvailability(subzones);
+            uplpDoc.setSubzonesArea(0);
+            parseBuildingMaxHeight(parseErrors, uplpDoc, words);
+
+            parseBuiltUpAreaPercentage(words, parseErrors, uplpDoc);
+
+            parseBuildingDensity(words, uplpDoc, parseErrors);
+        }
+        if(uplpDoc.getSubzonesAvailability().equals("-")){
+            parseErrors.append("Не найдена Наличие подзон ЗУ, номера\n");
+        }
+    }
+
+    private void splitUPlpDocs(List<UplpDoc> docList, UplpDoc uplpDoc, String areaSquareText, String zoneNumber, String[] words, StringBuilder parseErrors){
+
+        System.out.println("Create sub uplp:" + zoneNumber);
+
+        UplpDoc uplpSubzone = uplpDocMapper.copyDocData(uplpDoc);
+
+        uplpDoc.setRecordNo(uplpSubzone.getUplpNo()+zoneNumber.strip());
+
+        parseAreaSquare(uplpSubzone, areaSquareText);
+
+        parseBuildingMaxHeight(parseErrors, uplpSubzone, words);
+
+        parseBuiltUpAreaPercentage(words, parseErrors, uplpSubzone);
+
+        parseBuildingDensity(words, uplpDoc, parseErrors);
+
+        docList.add(uplpSubzone);
+    }
+
+    private void parseBuildingDensity(String[] words, UplpDoc uplpDoc, StringBuilder parseErrors){
+        for (String word : words){
+            if(word.matches(".+Максимальная плотность.+")){
+                //System.out.println(word);
+
+                String density = word.split(" Максимальная плотность \\(тыс.кв.м/га\\) - ")[1];
+                //System.out.println(density);
+
+                if(density.contains("по")){
+                    uplpDoc.setBuildingDensity("по существующему положению");
+                    return;
+                }
+                if(density.contains("действие")){
+                    uplpDoc.setBuildingDensity("Действие градостроительного регламента не распространяется");
+                    return;
+                }
+                if(density.contains("без")){
+                    uplpDoc.setBuildingDensity("без ограничений");
+                    return;
+                }
+                if(density.contains("не")){
+                    uplpDoc.setBuildingDensity("не установлен");
+                    return;
+                }
+                uplpDoc.setBuildingDensity(density.strip());
+            }
+        }
+        if (uplpDoc.getBuildingDensity().equals("-")){
+            parseErrors.append("Не найдено Максимальная плотность застройки, тыс. кв.м/га\n");
+        }
+    }
+
+    private void parseBuiltUpAreaPercentage(String[] words, StringBuilder parseErrors, UplpDoc uplpDoc) {
+        String builtUpAreaPercentage;
+
+        for (String word : words){
+            if(word.matches("\\(%\\) - .+")){
+                //System.out.println(word);
+                builtUpAreaPercentage = getAreaPercentage(word.split(" - ")[1]);
+                uplpDoc.setBuiltUpAreaPercentage(builtUpAreaPercentage);
+            }
+        }
+        if(uplpDoc.getBuiltUpAreaPercentage().equals("-")){
+            parseErrors.append("Не найден Максимальный процент застроенности, %");
+        }
+    }
+
+    private void parseAreaSquare(UplpDoc uplpDoc, String areaSquare) {
+        String metrics;
+
+        metrics = areaSquare.split(" ")[1];
+
+        metrics = metrics.substring(0, metrics.length() - 2);
+
+        //System.out.println(metrics);
+
+        areaSquare = areaSquare.split(" ")[0].replace('(', ' ').strip();
+
+        float area = 0f;
+
+        switch (metrics.toLowerCase()) {
+            case "га": {
+                area = Float.parseFloat(areaSquare.replace(',', '.')) * 10000;
+                uplpDoc.setSubzonesArea((int) area);
+                break;
+            }
+            case "кв.м": {
+                uplpDoc.setSubzonesArea(Integer.parseInt(areaSquare));
+                break;
+            }
+        }
+
+        //System.out.println("" + area);
+
+        //System.out.println(areaSquare);
     }
 
     /**
@@ -205,7 +392,7 @@ public class UPLPParser {
         for(String word : words){
             if(word.matches("\\d+ ± \\d.+|\\d+. кв.м")){
                 String plotArea = word.split(" ")[0];
-                System.out.println(plotArea);
+                //System.out.println(plotArea);
                 uplpDoc.setPlotArea(Integer.parseInt(plotArea));
             }
         }
@@ -253,7 +440,7 @@ public class UPLPParser {
             //System.out.println(word);
             if(word.matches("\\d.\\d.\\d+,")
                     || word.matches("\\(\\d.\\d.\\d\\)")){
-                System.out.println(word.split(",")[0] + " is matched");
+                //System.out.println(word.split(",")[0] + " is matched");
                 codesVRI += (codesVRI.length() > 0 ? " " : "") + word.split(",")[0].strip() + ";";
             }
             if(word.matches("\\(\\d.\\d.\\d\\)\r\n.+|\\(\\d.\\d.\\d\\)\n.+")){
@@ -263,13 +450,14 @@ public class UPLPParser {
                             .replace('(',' ')
                             .replace(')',' ')
                             .strip() + ";";
-                System.out.println(codeVRI);
-                System.out.println(codesVRI);
+                //System.out.println(codeVRI);
+               // System.out.println(codesVRI);
             }
-            if(word.matches("Действие градостроительного регламента не распространяется")){
-                codesVRI = word;
-                break;
-            }
+        }
+
+        if(codesVRI.equals("")){
+            uplpDoc.setSutGroupName(SUT_NOT_LIVING);
+            return "Действие градостроительного регламента не распространяется";
         }
 
         uplpDoc.setSutGroupName(checkLivingPlace(codesVRI));
@@ -287,10 +475,10 @@ public class UPLPParser {
             }
             if(code.matches("2\\.\\d|2.[0-7].\\d|13.2")){
                 sutStatus = sutStatus.equals(SUT_NOT_LIVING) ? SUT_MIXED : SUT_LIVING;
-                System.out.println(sutStatus);
+                //System.out.println(sutStatus);
             } else {
                 sutStatus = sutStatus.equals(SUT_LIVING) ? SUT_MIXED : SUT_NOT_LIVING;
-                System.out.println(sutStatus);
+                //System.out.println(sutStatus);
             }
         }
         return sutStatus;
@@ -318,7 +506,7 @@ public class UPLPParser {
 
         availability = (availability.split("\\. |, ").length > 0 ? availability.split("\\. |, ")[0] : availability);
 
-        System.out.println(availability);
+        //System.out.println(availability);
         return availability;
     }
 
@@ -331,7 +519,7 @@ public class UPLPParser {
             if(word.matches("\\d{2}:\\d{2}:\\d{7}:\\d+")
                     || word.matches("\\d{2}/\\d{2}/\\d{5}")
                 || word.matches("участок №\\d+|участок \\d+")){
-                System.out.println(word);
+                //System.out.println(word);
                 uplpDoc.setCadastralNo(word);
                 break;
             } else {
@@ -358,7 +546,7 @@ public class UPLPParser {
             }
         }
 
-        System.out.println(line);
+        //System.out.println(line);
 
         String[] lines = line.split(", ");
 
@@ -367,7 +555,7 @@ public class UPLPParser {
         String s = sLines.collect(Collectors.joining(", "));
 
 
-        System.out.println(s);
+        //System.out.println(s);
         return s;
     }
 
@@ -383,24 +571,23 @@ public class UPLPParser {
      */
     private void parse1to5Attributes(UplpDoc uplpDoc, String[] words, StringBuilder parseErrors){
         for(String word : words) {
-            if (word.startsWith("№ RU")) {
+            if (word.startsWith("№ RU")||word.startsWith("№ РФ")) {
                 uplpDoc.setUplpNo(parseNumber(word));
 
-                System.out.println(uplpDoc.getUplpNo());
+                uplpDoc.setRecordNo(uplpDoc.getUplpNo());
+
+                //System.out.println(uplpDoc.getUplpNo());
 
                 continue;
             }
 
             if (word.matches("Дата выдачи (\\d{2}.\\d{2}.\\d{4})|(\\d{2}.\\d{2}.\\d{4}\r)")) {
 
-                System.out.println(word);
+                //System.out.println(word);
 
                 uplpDoc.setDateOfIssue(parseIssueDate(word));
 
-//                LocalDate issueEndDate = parseExpiryDate(uplpDoc.getDateOfIssue());
                 LocalDate issueEndDate = parseExpiryDate(new SimpleDateFormat("dd.MM.yyyy").format(uplpDoc.getDateOfIssue()));
-
-//                uplpDoc.setExpiryDate(issueEndDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
 
                 uplpDoc.setExpiryDate(Date.from(issueEndDate.atStartOfDay()
                         .atZone(ZoneId.systemDefault())
@@ -412,7 +599,7 @@ public class UPLPParser {
             }
 
             if (word.contains("обращения")) {
-                System.out.println(word);
+                //System.out.println(word);
             }
         }
         if (uplpDoc.getUplpNo().equals("-")) {
@@ -434,12 +621,6 @@ public class UPLPParser {
 
         return uplpNum;
     }
-
-//    private static String parseIssueDate(String word) {
-//        String issueStartDateRaw = word.split(" ")[2];
-//
-//        return issueStartDateRaw;
-//    }
 
     private Date parseIssueDate(String word) {
         SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
@@ -523,11 +704,11 @@ public class UPLPParser {
 
         line = line.split(" от ")[0];
 
-        System.out.println(line);
+        //System.out.println(line);
 
-        System.out.println(words[start]);
+        //System.out.println(words[start]);
 
-        System.out.println(words[end]);
+        //System.out.println(words[end]);
 
         return line;
     }

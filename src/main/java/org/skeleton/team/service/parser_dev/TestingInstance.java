@@ -17,7 +17,7 @@ public class TestingInstance {
 
     public static void main(String[] args) throws IOException {
 
-        File file = new File("RU77106000-043720-GPZU.pdf");
+        File file = new File("RU77166000-042753-GPZU.pdf");
 
         //Спринг сам все сделает, это чисто для теста
         parser = new UPLPParser(new UplpDocMapper() {
@@ -33,15 +33,92 @@ public class TestingInstance {
 
             @Override
             public UplpDoc copyDocData(UplpDoc doc) {
-                return doc;
+                if ( doc == null ) {
+                    return null;
+                }
+
+                UplpDoc uplpDoc = new UplpDoc();
+
+                uplpDoc.setUplpDocId( doc.getUplpDocId() );
+                uplpDoc.setRecordNo( doc.getRecordNo() );
+                uplpDoc.setUplpNo( doc.getUplpNo() );
+                uplpDoc.setDateOfIssue( doc.getDateOfIssue() );
+                uplpDoc.setUplpStatus( doc.getUplpStatus() );
+                uplpDoc.setExpiryDate( doc.getExpiryDate() );
+                uplpDoc.setUplpRecipient( doc.getUplpRecipient() );
+                uplpDoc.setRecipientType( doc.getRecipientType() );
+                uplpDoc.setAdministrativeArea( doc.getAdministrativeArea() );
+                uplpDoc.setDistrict( doc.getDistrict() );
+                uplpDoc.setBuildingAddress( doc.getBuildingAddress() );
+                uplpDoc.setCadastralNo( doc.getCadastralNo() );
+                uplpDoc.setTlpProjectAvailability( doc.getTlpProjectAvailability() );
+                uplpDoc.setTlpDocumentDetails( doc.getTlpDocumentDetails() );
+                uplpDoc.setSurveyingProjectAvailability( doc.getSurveyingProjectAvailability() );
+                uplpDoc.setSurveyingProjectDetails( doc.getSurveyingProjectDetails() );
+                uplpDoc.setSutGroupName( doc.getSutGroupName() );
+                uplpDoc.setSutCodes( doc.getSutCodes() );
+                uplpDoc.setPlotArea( doc.getPlotArea() );
+                uplpDoc.setSubzonesAvailability( doc.getSubzonesAvailability() );
+                uplpDoc.setSubzonesArea( doc.getSubzonesArea() );
+                uplpDoc.setBuildingMaxHeight( doc.getBuildingMaxHeight() );
+                uplpDoc.setBuildingMaxFloors( doc.getBuildingMaxFloors() );
+                uplpDoc.setBuiltUpAreaPercentage( doc.getBuiltUpAreaPercentage() );
+                uplpDoc.setBuildingDensity( doc.getBuildingDensity() );
+                uplpDoc.setCboPurpose( doc.getCboPurpose() );
+                uplpDoc.setCboDescription( doc.getCboDescription() );
+                uplpDoc.setObjectsNotUnderConstructionStandarts( doc.getObjectsNotUnderConstructionStandarts() );
+                uplpDoc.setTotalFloorArea( doc.getTotalFloorArea() );
+                uplpDoc.setResidentialDevelopmentFloorArea( doc.getResidentialDevelopmentFloorArea() );
+                uplpDoc.setNonResidentialDevelopmentFloorArea( doc.getNonResidentialDevelopmentFloorArea() );
+                uplpDoc.setResidentialPremisesFloorArea( doc.getResidentialPremisesFloorArea() );
+                uplpDoc.setNonResidentialPremisesFloorArea( doc.getNonResidentialPremisesFloorArea() );
+                uplpDoc.setTotalBuildingArea( doc.getTotalBuildingArea() );
+                uplpDoc.setTotalResidentialDevelopmentArea( doc.getTotalResidentialDevelopmentArea() );
+                uplpDoc.setTotalNonResidentialDevelopmentArea( doc.getTotalNonResidentialDevelopmentArea() );
+                uplpDoc.setTotalResidentialPremisesArea( doc.getTotalResidentialPremisesArea() );
+                uplpDoc.setTotalNonResidentialPremisesArea( doc.getTotalNonResidentialPremisesArea() );
+                uplpDoc.setTotalUndergroundSpaceArea( doc.getTotalUndergroundSpaceArea() );
+                uplpDoc.setSubzonesTotalFloorArea( doc.getSubzonesTotalFloorArea() );
+                uplpDoc.setSubzonesResidentialObjectsFloorArea( doc.getSubzonesResidentialObjectsFloorArea() );
+                uplpDoc.setSubzonesNonResidentialObjectsFloorArea( doc.getSubzonesNonResidentialObjectsFloorArea() );
+                uplpDoc.setSubzonesResidentialPremisesFloorArea( doc.getSubzonesResidentialPremisesFloorArea() );
+                uplpDoc.setSubzonesNonResidentialPremisesFloorArea( doc.getSubzonesNonResidentialPremisesFloorArea() );
+                uplpDoc.setSubzonesTotalObjectsArea( doc.getSubzonesTotalObjectsArea() );
+                uplpDoc.setSubzonesTotalResidentialObjectsArea( doc.getSubzonesTotalResidentialObjectsArea() );
+                uplpDoc.setSubzonesTotalNonResidentialObjectsArea( doc.getSubzonesTotalNonResidentialObjectsArea() );
+                uplpDoc.setSubzonesTotalResidentialPremisesArea( doc.getSubzonesTotalResidentialPremisesArea() );
+                uplpDoc.setSubzonesTotalNonResidentialPremisesArea( doc.getSubzonesTotalNonResidentialPremisesArea() );
+                uplpDoc.setSubzonesTotalUndergroundSpaceArea( doc.getSubzonesTotalUndergroundSpaceArea() );
+                uplpDoc.setExistingCboAvailability( doc.getExistingCboAvailability() );
+                uplpDoc.setExistingCboTotalCount( doc.getExistingCboTotalCount() );
+                uplpDoc.setExistingCboPurpose( doc.getExistingCboPurpose() );
+                uplpDoc.setExistingCboDescription( doc.getExistingCboDescription() );
+                uplpDoc.setExistingCboMaxFloorCount(
+                        doc.getExistingCboMaxFloorCount() );
+                uplpDoc.setExistingCboTotalArea( doc.getExistingCboTotalArea() );
+                uplpDoc.setExistingCboResidentialObjectsArea( doc.getExistingCboResidentialObjectsArea() );
+                uplpDoc.setExistingCboNonResidentialObjectsArea( doc.getExistingCboNonResidentialObjectsArea() );
+                uplpDoc.setCloAvailability( doc.getCloAvailability() );
+                uplpDoc.setCboTotalCount( doc.getCboTotalCount() );
+                uplpDoc.setCloDescription( doc.getCloDescription() );
+                uplpDoc.setCloIdentificationNo( doc.getCloIdentificationNo() );
+                uplpDoc.setCloRegistrationNo( doc.getCloRegistrationNo() );
+                uplpDoc.setOperatorName( doc.getOperatorName() );
+                uplpDoc.setActualisationDate( doc.getActualisationDate() );
+                uplpDoc.setFileReference( doc.getFileReference() );
+                uplpDoc.setObjectZoneNo( doc.getObjectZoneNo() );
+                uplpDoc.setUplpLog( doc.getUplpLog() );
+
+                return uplpDoc;
             }
         });
 
-        List<UplpDoc> doc = parser.parsingUPLPFile(file, new StringBuilder());
+        //List<UplpDoc> doc = parser.parsingUPLPFile(file, new StringBuilder());
 
         /* Метод парсит все ГПЗУ файлы в пределах корневого каталога проекта */
-        //parseAll();
+        parseAll();
 
+        //doc.forEach(System.out::println);
 
     }
 
@@ -50,8 +127,16 @@ public class TestingInstance {
 
         for(String uplp : file.list()){
             if(uplp.endsWith(".pdf")) {
+
+                System.out.println("======================== START PARSING "+uplp+" ========================");
+
                 File uplpFile = new File(uplp);
-                parser.parsingUPLPFile(uplpFile, new StringBuilder());
+
+                List<UplpDoc> docList = parser.parsingUPLPFile(uplpFile, new StringBuilder());
+
+                docList.forEach(System.out::println);
+
+                System.out.println("======================== END PARSING "+uplp+" ========================");
             }
         }
     }
