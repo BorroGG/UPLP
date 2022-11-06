@@ -198,10 +198,17 @@ public class UplpDocServiceImpl implements UplpDocService {
         uplpDocConverter.convertUplpDocsToXmlStream(simpleDocs, outputStream);
     }
 
-    private List<UplpDoc> parseFile(String fileName, Date loadTime, File file) throws IOException {
+    private List<UplpDoc> parseFile(String fileName, Date loadTime, File file) {
         StringBuilder parseErrors = new StringBuilder();
-
-        List<UplpDoc> uplpDocs = uplpParser.parsingUPLPFile(file, parseErrors);
+        List<UplpDoc> uplpDocs;
+        try {
+            uplpDocs = uplpParser.parsingUPLPFile(file, parseErrors);
+        } catch (Exception e) {
+            uplpDocs = new ArrayList<>();
+            UplpDoc uplpDoc = new UplpDoc();
+            uplpDocs.add(uplpDoc);
+            parseErrors.append("Не удалось обработать документ");
+        }
 
         for (UplpDoc uplpDoc : uplpDocs) {
             UplpLog uplpLog = new UplpLog();
