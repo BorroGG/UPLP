@@ -2,6 +2,8 @@ package org.skeleton.team.service;
 
 import org.skeleton.team.entity.UplpDoc;
 import org.skeleton.team.entity.UplpSimpleDoc;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.OutputStream;
@@ -28,9 +30,10 @@ public interface UplpDocService {
 
     /**
      * Получение всех документов ГПЗУ.
+     * @param pageable пагинация
      * @return документы ГПЗУ
      */
-    List<UplpDoc> getAllUplpDocs();
+    Page<UplpDoc> getAllUplpDocs(Pageable pageable);
 
     /**
      * Получение простых документов ГПЗУ по ИД.

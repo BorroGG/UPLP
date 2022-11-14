@@ -9,6 +9,8 @@ import org.skeleton.team.repository.UplpDocRepository;
 import org.skeleton.team.repository.UplpLogRepository;
 import org.skeleton.team.service.parser_dev.UPLPParser;
 import org.skeleton.team.util.UplpDocConverter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -64,8 +66,8 @@ public class UplpDocServiceImpl implements UplpDocService {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<UplpDoc> getAllUplpDocs() {
-        return uplpDocRepository.findAll();
+    public Page<UplpDoc> getAllUplpDocs(Pageable pageable) {
+        return uplpDocRepository.findAll(pageable);
     }
 
     /**

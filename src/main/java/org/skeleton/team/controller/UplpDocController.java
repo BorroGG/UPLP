@@ -9,6 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.skeleton.team.entity.UplpDoc;
 import org.skeleton.team.entity.UplpSimpleDoc;
 import org.skeleton.team.service.UplpDocService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -72,8 +76,10 @@ public class UplpDocController {
      */
     @GetMapping("/all")
     @Operation(summary = "Получение всех документов ГПЗУ")
-    public ResponseEntity<List<UplpDoc>> getAllUplpDocs() {
-        return ResponseEntity.ok(uplpDocService.getAllUplpDocs());
+    public ResponseEntity<Page<UplpDoc>> getAllUplpDocs(
+            @PageableDefault(direction = Sort.Direction.ASC, sort = "uplpDocId") Pageable pageable
+            ) {
+        return ResponseEntity.ok(uplpDocService.getAllUplpDocs(pageable));
     }
 
     /**
