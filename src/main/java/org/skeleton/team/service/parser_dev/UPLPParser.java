@@ -16,8 +16,6 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Парсер для документов ГПЗУ.
@@ -68,6 +66,7 @@ public class UPLPParser {
         parseUplpTerritory(uplpDoc, stringDocumentText);
 
         //Этап 5 - Парсинг подзон
+        parseUplpSubzones(resultDocList, uplpDoc, stringDocumentText, uplpDocMapper);
 
         //Этап 6 - Парсинг атрибутов ОКС
         parseUplpCboAttributes(uplpDoc, stringDocumentText);
