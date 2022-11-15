@@ -113,10 +113,10 @@ public class TestingInstance {
             }
         });
 
-        //List<UplpDoc> doc = parser.parsingUPLPFile(file, new StringBuilder());
+        List<UplpDoc> doc = parser.parsingUPLPFile(file, new StringBuilder());
 
         /* Метод парсит все ГПЗУ файлы в пределах корневого каталога проекта */
-        parseAll();
+        //parseAll();
 
         //doc.forEach(System.out::println);
 
