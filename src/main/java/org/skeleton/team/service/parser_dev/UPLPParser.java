@@ -42,13 +42,13 @@ public class UPLPParser {
 
         String stringDocumentText = pdfToString(document);
 
+        resultDocList.add(uplpDoc);
+
         //Если документ секретный, то вносим пометки и заканчиваем парсинг
         if(isSecret(stringDocumentText)) {
             uplpDoc.setUplpNo(document.getName().replace("RF","РФ"));
 
             uplpDoc.setUplpStatus(SECRET);
-
-            resultDocList.add(uplpDoc);
 
             return resultDocList;
         }
