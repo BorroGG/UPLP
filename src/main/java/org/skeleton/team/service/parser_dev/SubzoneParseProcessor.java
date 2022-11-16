@@ -5,6 +5,8 @@ import org.skeleton.team.mapper.UplpDocMapper;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SubzoneParseProcessor {
     /**
@@ -12,182 +14,173 @@ public class SubzoneParseProcessor {
      * - Наличие подзон ЗУ, номера<br>
      * - Площади подзон ЗУ, кв.<br>
      * Метод создаёт новый документ с подзонами и копирует туда общие атрибуты и заполняет соответствующими подзоне.
-     * @param words текстовый массив строк документов
+     * @param documentText текст документа в виде одной строки
      * @param docList список документов для добавления документов с подзонами
      * @param uplpDoc текущий документ
      */
-     void parseSubzones(List<UplpDoc> docList, UplpDoc uplpDoc, String[] words, UplpDocMapper uplpDocMapper) {
-        String subzones = "";
+     void parseSubzones(List<UplpDoc> docList, UplpDoc uplpDoc, String documentText, UplpDocMapper uplpDocMapper) {
 
-        String areaSquare = "";
+         String[] docByLines = documentText.split("\n|\r\n");
 
-        for(String word : words) {
-            if(word.matches("Подзона № \\d+.+")){
-                String zoneNumber = "№" + word.split(" ")[2];
+         String subzone = "";
 
-                //System.out.println(zoneNumber);
+         int subZoneNumber;
 
-                if(subzones.length() > 0){
-                    splitUPlpDocs(docList, uplpDoc, word.split(" на чертеже ")[1], zoneNumber, words, uplpDocMapper);
+         Pattern subZonePattern = Pattern.compile("Подзона ((№\\s*|N\\s*)(\\d+))");
 
-                    subzones += zoneNumber;
+         Matcher subZoneMatcher = subZonePattern.matcher(String.join(" ", docByLines));
 
-                    uplpDoc.setSubzonesAvailability(subzones);
+         //Крутим цикл, пока есть подзоны
+         while (subZoneMatcher.find()) {
 
-                    continue;
-                }
+             System.out.println("Найдена " + subZoneMatcher.group());
 
-                uplpDoc.setRecordNo(uplpDoc.getUplpNo() + zoneNumber.strip());
+             subzone = subZoneMatcher.group(2)+subZoneMatcher.group(3);
 
-                subzones += zoneNumber;
+             subZoneNumber = Integer.parseInt(subZoneMatcher.group(3));
 
-                uplpDoc.setSubzonesAvailability(subzones);
+             //В случае, если подзон больше, чем одна, то делим документ
+             if (subZoneNumber > 1) {
+                 splitAndParseUPlpDocs(docList, uplpDoc, subzone, docByLines, uplpDocMapper);
 
-                areaSquare = word.split(" на чертеже ")[1];
+                 continue;
+             }
 
-                parseAreaSquare(uplpDoc, areaSquare);
+             //Если это первая или единственная подзона, то изменяем оригинальный документ
+             uplpDoc.setRecordNo(uplpDoc.getUplpNo()+subzone);
 
-                //System.out.println(word);
+             uplpDoc.setSubzonesAvailability(subzone);
 
-            } else if (word.matches("Подзона №\\d+.+")) {
+             parseSequences(uplpDoc, docByLines);
+         }
 
-                String zoneNumber = "№" + word.split(" ")[1].replace('№',' ')+" ";
+         if (subzone.equals("")) {
+             subzone = "нет";
 
-                //System.out.println(word);
+             uplpDoc.setSubzonesAvailability(subzone);
 
-                if(subzones.length() > 0){
-                    splitUPlpDocs(docList, uplpDoc, word.split(" на чертеже ")[1], zoneNumber, words, uplpDocMapper);
+             uplpDoc.setSubzonesArea(0);
 
-                    subzones += zoneNumber;
+             parseBuildingMaxHeight(uplpDoc, docByLines);
 
-                    uplpDoc.setSubzonesAvailability(subzones);
+             parseBuiltUpAreaPercentage(docByLines, uplpDoc);
 
-                    continue;
-                }
+             parseBuildingDensity(docByLines, uplpDoc);
+         }
+     }
+     private String[] parseAreaSquare(UplpDoc uplpDoc, String[] docByLines) {
 
-                uplpDoc.setRecordNo(uplpDoc.getUplpNo() + zoneNumber.strip());
+         String subzoneNumber = uplpDoc.getSubzonesAvailability().substring(1);
 
-                subzones += zoneNumber;
+         Pattern subzonePattern = Pattern.compile("(Подзона №+" + subzoneNumber + ").*");
 
-                uplpDoc.setSubzonesAvailability(subzones);
+         Matcher subzoneRestrictMatcher = subzonePattern.matcher(String.join(" ", docByLines));
 
-                areaSquare = word.split(" на чертеже ")[1];
+         if (subzoneRestrictMatcher.find()) {
+             String subzoneLine = subzoneRestrictMatcher.group(0);
 
-                parseAreaSquare(uplpDoc, areaSquare);
+             Pattern p1 = Pattern.compile("(\\d+\\.\\d*) (га|кв.м)");
 
-                //System.out.println(word);
+             Matcher m1 = p1.matcher(String.join(" ", subzoneLine));
 
-            } else if (word.matches("Подзона N\\d+.+")) {
+             String areaSquare = "";
 
-                String zoneNumber = "№" + word.split(" ")[1].substring(1);
+             String metrics = "";
 
-                if(subzones.length() > 0){
-                    splitUPlpDocs(docList, uplpDoc, word.split(" на чертеже ")[1], zoneNumber, words, uplpDocMapper);
+             if (m1.find()) {
+                 areaSquare = m1.group(1);
+                 metrics = m1.group(2);
 
-                    subzones += zoneNumber;
+                 //System.out.println(areaSquare + " "+metrics);
+             }
+             return new String[]{areaSquare, metrics};
+         }
+         return new String[]{"0", "0"};
+     }
+    private void splitAndParseUPlpDocs(List<UplpDoc> docList, UplpDoc uplpDoc, String zoneNumber, String[] docByLines, UplpDocMapper uplpDocMapper){
 
-                    continue;
-                }
-
-                uplpDoc.setRecordNo(uplpDoc.getUplpNo() + zoneNumber.strip());
-
-                subzones += zoneNumber;
-
-                areaSquare = word.split(" на чертеже ")[1];
-
-                //System.out.println(subzones);
-
-                parseAreaSquare(uplpDoc, areaSquare);
-
-                parseBuildingMaxHeight(uplpDoc, words);
-
-                parseBuiltUpAreaPercentage(words, uplpDoc);
-            }
-        }
-        if(subzones.equals("")) {
-            subzones = "нет";
-            uplpDoc.setSubzonesAvailability(subzones);
-            uplpDoc.setSubzonesArea(0);
-            parseBuildingMaxHeight(uplpDoc, words);
-
-            parseBuiltUpAreaPercentage(words, uplpDoc);
-
-            parseBuildingDensity(words, uplpDoc);
-        }
-    }
-
-    private void splitUPlpDocs(List<UplpDoc> docList, UplpDoc uplpDoc, String areaSquareText, String zoneNumber, String[] words, UplpDocMapper uplpDocMapper){
-
-        System.out.println("Create sub uplp:" + zoneNumber);
+        //System.out.println("Create sub uplp:" + zoneNumber);
 
         UplpDoc uplpSubzone = uplpDocMapper.copyDocData(uplpDoc);
 
-        uplpDoc.setRecordNo(uplpSubzone.getUplpNo()+zoneNumber.strip());
+        uplpSubzone.setRecordNo(uplpSubzone.getUplpNo()+zoneNumber);
 
-        parseAreaSquare(uplpSubzone, areaSquareText);
+        uplpSubzone.setSubzonesAvailability(zoneNumber);
 
-        parseBuildingMaxHeight(uplpSubzone, words);
-
-        parseBuiltUpAreaPercentage(words, uplpSubzone);
-
-        parseBuildingDensity(words, uplpDoc);
+        parseSequences(uplpSubzone, docByLines);
 
         docList.add(uplpSubzone);
     }
 
+    private void parseSequences(UplpDoc subZoneDoc, String[] docByLines) {
+        calculateAreaSquare(subZoneDoc, docByLines);
+
+        parseBuildingMaxHeight(subZoneDoc, docByLines);
+
+        parseBuiltUpAreaPercentage(docByLines, subZoneDoc);
+
+        parseBuildingDensity(docByLines, subZoneDoc);
+
+    }
+
     private void parseBuildingDensity(String[] words, UplpDoc uplpDoc){
-        for (String word : words){
-            if(word.matches(".+Максимальная плотность.+")){
-                //System.out.println(word);
 
-                String density = word.split(" Максимальная плотность \\(тыс.кв.м/га\\) - ")[1];
-                //System.out.println(density);
+        String subzoneNumber = uplpDoc.getSubzonesAvailability().substring(1);
 
-                if(density.contains("по")){
-                    uplpDoc.setBuildingDensity("по существующему положению");
-                    return;
-                }
-                if(density.contains("действие")){
-                    uplpDoc.setBuildingDensity("Действие градостроительного регламента не распространяется");
-                    return;
-                }
-                if(density.contains("без")){
-                    uplpDoc.setBuildingDensity("без ограничений");
-                    return;
-                }
-                if(density.contains("не")){
-                    uplpDoc.setBuildingDensity("не установлен");
-                    return;
-                }
-                uplpDoc.setBuildingDensity(density.strip());
+        Pattern subzonePattern = Pattern.compile("(Подзона №+"+subzoneNumber+").*");
+
+        Matcher subzoneRestrictMatcher = subzonePattern.matcher(String.join(" ", words));
+
+        if(subzoneRestrictMatcher.find()){
+            String subzoneLine = subzoneRestrictMatcher.group(0);
+
+            Pattern buildingDensityPattern = Pattern.compile("Максимальная плотность \\(тыс.кв.м/га\\) - (\\d+.\\d+|\\d+|без  ограничений|без ограничений|не установлен|по  существующему  положению|Действие  градостроительного  регламента  не  распространяется)");
+
+            Matcher buildingDensityMatcher = buildingDensityPattern.matcher(String.join(" ", subzoneLine));
+
+            if(buildingDensityMatcher.find()){
+                //System.out.println(buildingDensityMatcher.group());
+                //System.out.println(buildingDensityMatcher.group(1));
+                uplpDoc.setBuildingDensity(buildingDensityMatcher.group(1));
             }
         }
-
     }
 
     private void parseBuiltUpAreaPercentage(String[] words, UplpDoc uplpDoc) {
-        String builtUpAreaPercentage;
+        String subzoneNumber = uplpDoc.getSubzonesAvailability().substring(1);
 
-        for (String word : words){
-            if(word.matches("\\(%\\) - .+")){
-                //System.out.println(word);
-                builtUpAreaPercentage = getAreaPercentage(word.split(" - ")[1]);
-                uplpDoc.setBuiltUpAreaPercentage(builtUpAreaPercentage);
+        Pattern subzonePattern = Pattern.compile("(Подзона №+"+subzoneNumber+").*");
+
+        Matcher subzoneRestrictMatcher = subzonePattern.matcher(String.join(" ", words));
+
+        if(subzoneRestrictMatcher.find()){
+            //System.out.println(subzoneRestrictMatcher.group(0));
+
+            String subzoneLine = subzoneRestrictMatcher.group(0);
+
+            Pattern areaPercentagePattern = Pattern.compile("(\\(%\\) - (\\d+|без  ограничений|без ограничений|не установлен|по  существующему  положению|Действие  градостроительного  регламента  не  распространяется))");
+
+            Matcher areaPercentageMatcher = areaPercentagePattern.matcher(String.join(" ", subzoneLine));
+
+            if(areaPercentageMatcher.find(0)){
+                //System.out.println(areaPercentageMatcher.group(0));
+                //System.out.println(areaPercentageMatcher.group(1));
+                //System.out.println(areaPercentageMatcher.group(2));
+                uplpDoc.setBuiltUpAreaPercentage(areaPercentageMatcher.group(2));
             }
-        }
 
+        }
     }
 
-    private void parseAreaSquare(UplpDoc uplpDoc, String areaSquare) {
-        String metrics;
+    private void calculateAreaSquare(UplpDoc uplpDoc, String[] docByLines) {
 
-        metrics = areaSquare.split(" ")[1];
+        String[] areaSquareWithMetrics = parseAreaSquare(uplpDoc, docByLines);
 
-        metrics = metrics.substring(0, metrics.length() - 2);
+        //System.out.println("Area square = "+areaSquareWithMetrics[0] + " "+areaSquareWithMetrics[1]);
 
-        //System.out.println(metrics);
+        String areaSquare = areaSquareWithMetrics[0];
 
-        areaSquare = areaSquare.split(" ")[0].replace('(', ' ').strip();
+        String metrics = areaSquareWithMetrics[1];
 
         float area = 0f;
 
@@ -198,14 +191,10 @@ public class SubzoneParseProcessor {
                 break;
             }
             case "кв.м": {
-                uplpDoc.setSubzonesArea(Integer.parseInt(areaSquare));
+                uplpDoc.setSubzonesArea((int)Float.parseFloat(areaSquare));
                 break;
             }
         }
-
-        //System.out.println("" + area);
-
-        //System.out.println(areaSquare);
     }
 
 
@@ -217,25 +206,25 @@ public class SubzoneParseProcessor {
     private void parseBuildingMaxHeight(UplpDoc uplpDoc, String[] words) {
         int maxHeight = 0;
 
-        for(String word : words){
-            if(word.matches("\\(м\\.\\) - \\d+")){
-                maxHeight = Integer.parseInt(word.split(" - ")[1]);
-                uplpDoc.setBuildingMaxHeight(BigDecimal.valueOf(maxHeight));
+        String subzoneNumber = uplpDoc.getSubzonesAvailability().substring(1);
+
+        Pattern subzonePattern = Pattern.compile("(Подзона №+"+subzoneNumber+").*");
+
+        Matcher subzoneRestrictMatcher = subzonePattern.matcher(String.join(" ", words));
+
+        if(subzoneRestrictMatcher.find()) {
+
+            String subzoneLine = subzoneRestrictMatcher.group(0);
+
+            Pattern heightPattern = Pattern.compile("(\\(м\\.\\) - (\\d+|без  ограничений|без ограничений|не установлен|по  существующему  положению|Действие  градостроительного  регламента  не  распространяется))");
+
+            Matcher heightMatcher = heightPattern.matcher(String.join(" ", subzoneLine));
+            if (heightMatcher.find()) {
+                //System.out.println(heightMatcher.group(0));
+                //System.out.println(heightMatcher.group(1));
+                //System.out.println(heightMatcher.group(2));
+                uplpDoc.setBuildingMaxHeight(heightMatcher.group(2));
             }
         }
     }
-
-    private String getAreaPercentage(String word) {
-        if(word.contains("действие ")){
-            return "Действие градостроительного регламента не распространяется";
-        }
-        if(word.contains("без ")){
-            return "без ограничений";
-        }
-        if(word.contains("по ")){
-            return "по существующему положению";
-        }
-        return word;
-    }
-
 }

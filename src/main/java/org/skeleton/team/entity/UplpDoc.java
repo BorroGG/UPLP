@@ -144,7 +144,7 @@ public class UplpDoc {
 
     @Schema(description = "Максимальная высота застройки, м")
     @Column(name = "building_max_height")
-    private BigDecimal buildingMaxHeight;
+    private String buildingMaxHeight;
 
     @Schema(description = "Максимальное количество этажей, шт")
     @Column(name = "building_max_floors")

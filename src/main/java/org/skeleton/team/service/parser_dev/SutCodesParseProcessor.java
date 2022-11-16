@@ -70,7 +70,7 @@ public class SutCodesParseProcessor {
         return sutStatus;
     }
 
-    static void outputUplpSutData(UplpDoc uplpDoc) {
+    void outputUplpSutData(UplpDoc uplpDoc) {
         System.out.println("==================== ВЫВОД ДАННЫХ ДОКУМЕНТА НА ЭТАПЕ III ==================");
 
         System.out.println(

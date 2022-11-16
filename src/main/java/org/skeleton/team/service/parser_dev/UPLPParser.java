@@ -42,13 +42,13 @@ public class UPLPParser {
 
         String stringDocumentText = pdfToString(document);
 
+        resultDocList.add(uplpDoc);
+
         //Если документ секретный, то вносим пометки и заканчиваем парсинг
         if(isSecret(stringDocumentText)) {
             uplpDoc.setUplpNo(document.getName().replace("RF","РФ"));
 
             uplpDoc.setUplpStatus(SECRET);
-
-            resultDocList.add(uplpDoc);
 
             return resultDocList;
         }
@@ -65,14 +65,14 @@ public class UPLPParser {
         //Этап 4 - Парсинг атрибутов территориальных показателей ГПЗУ
         parseUplpTerritory(uplpDoc, stringDocumentText);
 
-        //Этап 5 - Парсинг подзон
-        parseUplpSubzones(resultDocList, uplpDoc, stringDocumentText, uplpDocMapper);
-
-        //Этап 6 - Парсинг атрибутов ОКС
+        //Этап 5 - Парсинг атрибутов ОКС
         parseUplpCboAttributes(uplpDoc, stringDocumentText);
 
-        //Этап 5 - Парсинг объектов, включенных в единый государственный реестр объектов культурного наследия (ОКН)
+        //Этап 6 - Парсинг объектов, включенных в единый государственный реестр объектов культурного наследия (ОКН)
         parseUplpCloAttributes(uplpDoc, stringDocumentText);
+
+        //Этап 7 - Парсинг подзон
+        parseUplpSubzones(resultDocList, uplpDoc, stringDocumentText, uplpDocMapper);
 
         checkForErrors(uplpDoc, parseErrorsLog);
 
@@ -252,9 +252,7 @@ public class UPLPParser {
     private void parseUplpSubzones(List<UplpDoc> docList,UplpDoc uplpDoc, String documentText, UplpDocMapper uplpDocMapper){
         SubzoneParseProcessor parseProcessor = new SubzoneParseProcessor();
 
-        String[] docByLines = documentText.split("\n|\r\n");
-
-        parseProcessor.parseSubzones(docList, uplpDoc, docByLines, uplpDocMapper);
+        parseProcessor.parseSubzones(docList, uplpDoc, documentText, uplpDocMapper);
     }
 
     /**
