@@ -100,6 +100,7 @@ public class UplpSimpleDoc {
         this.subzonesAvailability = "-";
         this.builtUpAreaPercentage = "-";
         this.buildingDensity = "-";
+        this.buildingMaxHeight = "-";
         this.cboPurpose = "-";
         this.cboDescription = "-";
         this.objectsNotUnderConstructionStandarts = "-";
@@ -134,7 +135,7 @@ public class UplpSimpleDoc {
     private Integer plotArea;
     private String subzonesAvailability;
     private Integer subzonesArea;
-    private BigDecimal buildingMaxHeight;
+    private String buildingMaxHeight;
     private Integer buildingMaxFloors;
     private String builtUpAreaPercentage;
     private String buildingDensity;

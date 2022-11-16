@@ -41,6 +41,7 @@ public class UplpDoc {
         this.subzonesAvailability = "-";
         this.builtUpAreaPercentage = "-";
         this.buildingDensity = "-";
+        this.buildingMaxHeight = "-";
         this.cboPurpose = "-";
         this.cboDescription = "-";
         this.objectsNotUnderConstructionStandarts = "-";

@@ -299,7 +299,7 @@ public class UplpDocConverter {
         row.createCell(cellNum++).setCellValue(uplpDoc.getPlotArea() != null ? uplpDoc.getPlotArea().toString() : "-");
         row.createCell(cellNum++).setCellValue(uplpDoc.getSubzonesAvailability());
         row.createCell(cellNum++).setCellValue(uplpDoc.getSubzonesArea() != null ? uplpDoc.getSubzonesArea().toString() : "-");
-        row.createCell(cellNum++).setCellValue(uplpDoc.getBuildingMaxHeight() != null ? uplpDoc.getBuildingMaxHeight().toString() : "-");
+        row.createCell(cellNum++).setCellValue(uplpDoc.getBuildingMaxHeight());
         row.createCell(cellNum++).setCellValue(uplpDoc.getBuildingMaxFloors() != null ? uplpDoc.getBuildingMaxFloors().toString() : "-");
         row.createCell(cellNum++).setCellValue(uplpDoc.getBuiltUpAreaPercentage());
         row.createCell(cellNum++).setCellValue(uplpDoc.getBuildingDensity());
