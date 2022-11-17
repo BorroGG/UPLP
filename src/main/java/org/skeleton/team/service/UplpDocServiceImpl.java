@@ -95,7 +95,7 @@ public class UplpDocServiceImpl implements UplpDocService {
         if (uplpDoc != null) {
             String filePath = uplpDoc.getFileReference();
             if (!new File(filePath).delete()) {
-                throw new RuntimeException("Не удалось удалить файл из файловой системы");
+//                throw new RuntimeException("Не удалось удалить файл из файловой системы");
             }
             uplpDocRepository.delete(uplpDoc);
             return uplpDoc;
