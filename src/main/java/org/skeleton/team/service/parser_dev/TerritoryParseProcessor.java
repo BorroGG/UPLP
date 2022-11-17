@@ -5,6 +5,7 @@ import org.skeleton.team.entity.UplpDoc;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.regex.*;
 
 public class TerritoryParseProcessor {
 
@@ -54,7 +55,7 @@ public class TerritoryParseProcessor {
      * @param docByLines текстовый массив документа
      * @return строка наличия проекта планировки
      */
-    String parseAvailability(String[] docByLines) {
+    String parseTlpAvailability(String[] docByLines) {
         String availability = "";
 
         for(String line : docByLines){
@@ -72,6 +73,105 @@ public class TerritoryParseProcessor {
         availability = (availability.split("\\. |, ").length > 0 ? availability.split("\\. |, ")[0] : availability);
 
         return availability;
+    }
+
+    String parseTlpDocumentDetails(String[] docByLines) {
+        String details = "";
+        Pattern pattern = Pattern.compile("№\\W{0,3}[\\w-]+\\W{0,3}от\\W{0,3}\\d{2}.\\d{2}.\\d{4}");
+        Matcher matcher;
+        Boolean foundProject = false;
+        String lastLine = "";
+        Boolean lastLineFound = false;
+
+        for(String line : docByLines){
+            if(line.startsWith(" - Проект планировки территории")) {
+                foundProject = true;
+            }
+            if(foundProject) {
+                matcher = pattern.matcher(line);
+                if(matcher.find()) {
+                    if(!details.equals("")) {
+                        details += "; ";
+                    }
+                    details += line.substring(matcher.start(), matcher.end());
+                    lastLineFound = true;
+                } else if (!lastLine.equals("")) {
+                    matcher = pattern.matcher(lastLine+line);
+                    if(matcher.find() & !lastLineFound) {
+                        if (!details.equals("")) {
+                            details += "; ";
+                        }
+                        details += (lastLine+line).substring(matcher.start(), matcher.end());
+                        lastLineFound = true;
+                    } else {
+                        lastLineFound = false;
+                    }
+                }
+                lastLine = line;
+            }
+            if (line.startsWith("Градостроительный план подготовлен") | (line.contains("Проект межевания территории") & foundProject)) {
+                break;
+            }
+        }
+
+        return details;
+    }
+    String parseSurveyingAvailability(String[] docByLines) {
+        String availability = "";
+
+        for(String line : docByLines){
+            if(line.contains("Проект межевания территории")) {
+                if (line.contains("не утвержден.")) {
+                    availability = "не утвержден";
+                } else {
+                    availability = "утвержден";
+                }
+                break;
+            }
+            }
+
+        return availability;
+    }
+
+    String parseSurveyingProjectDetails(String[] docByLines) {
+        String details = "";
+        Pattern pattern = Pattern.compile("№\\W{0,3}\\d+\\W{0,3}от\\W{0,3}\\d{2}.\\d{2}.\\d{4}");
+        Matcher matcher;
+        Boolean foundProject = false;
+        String lastLine = "";
+        Boolean lastLineFound = false;
+
+        for(String line : docByLines){
+            if(line.startsWith(" - Проект межевания территории")) {
+                foundProject = true;
+            }
+            if(foundProject) {
+                matcher = pattern.matcher(line);
+                if(matcher.find()) {
+                    if(!details.equals("")) {
+                        details += "; ";
+                    }
+                    details += line.substring(matcher.start(), matcher.end());
+                    lastLineFound = true;
+                } else if (!lastLine.equals("")) {
+                    matcher = pattern.matcher(lastLine+line);
+                    if(matcher.find() & !lastLineFound) {
+                        if (!details.equals("")) {
+                            details += "; ";
+                        }
+                        details += (lastLine+line).substring(matcher.start(), matcher.end());
+                        lastLineFound = true;
+                    } else {
+                        lastLineFound = false;
+                    }
+                }
+                lastLine = line;
+            }
+            if (line.startsWith("Градостроительный план подготовлен")) {
+                break;
+            }
+        }
+        return details;
     }
 
     private boolean checkRegion(String s){

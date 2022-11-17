@@ -17,7 +17,10 @@ public class TestingInstance {
 
     public static void main(String[] args) throws IOException {
 
-        File file = new File("RU77166000-042753-GPZU.pdf");
+        //File file = new File("c:/Users/MagicBook Pro/RU77101000-041075-GPZU.pdf");
+        //File file = new File("c:/Users/MagicBook Pro/RU77101000-041056-GPZU.pdf");
+        //File file = new File("c:/Users/MagicBook Pro/RU77166000-042753-GPZU.pdf");
+        File file = new File("c:/Users/MagicBook Pro/RU77245000-044659-GPZU.pdf");
 
         //Спринг сам все сделает, это чисто для теста
         parser = new UPLPParser(new UplpDocMapper() {
@@ -113,12 +116,12 @@ public class TestingInstance {
             }
         });
 
-        //List<UplpDoc> doc = parser.parsingUPLPFile(file, new StringBuilder());
+        List<UplpDoc> doc = parser.parsingUPLPFile(file, new StringBuilder());
 
         /* Метод парсит все ГПЗУ файлы в пределах корневого каталога проекта */
         parseAll();
 
-        //doc.forEach(System.out::println);
+        doc.forEach(System.out::println);
 
     }
 

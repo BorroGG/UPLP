@@ -209,13 +209,21 @@ public class UPLPParser {
 
         uplpDoc.setCadastralNo(parseProcessor.parseCadastralNumber(docByLines));
 
-        uplpDoc.setTlpProjectAvailability(parseProcessor.parseAvailability(docByLines));
+        uplpDoc.setTlpProjectAvailability(parseProcessor.parseTlpAvailability(docByLines));
 
-        //TODO парсинг Реквизиты документа ППТ
+        if (uplpDoc.getTlpProjectAvailability().equals("утвержден")) {
+            uplpDoc.setTlpDocumentDetails(parseProcessor.parseTlpDocumentDetails(docByLines));
+        } else {
+            uplpDoc.setTlpDocumentDetails("нет");
+        }
 
-        //TODO парсинг наличия отдельного проекта межевания
+        uplpDoc.setSurveyingProjectAvailability(parseProcessor.parseSurveyingAvailability(docByLines));
 
-        //TODO парсинг Реквизиты межевания
+        if (uplpDoc.getSurveyingProjectAvailability().equals("утвержден")) {
+            uplpDoc.setSurveyingProjectDetails(parseProcessor.parseSurveyingProjectDetails(docByLines));
+        } else {
+            uplpDoc.setSurveyingProjectDetails("нет");
+        }
 
         parseProcessor.outputUplpTerritoryData(uplpDoc);
     }
