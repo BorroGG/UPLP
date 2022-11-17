@@ -94,7 +94,7 @@ public class UplpDocController {
      * Получение всех документов ГПЗУ.
      * @return документы ГПЗУ
      */
-    @GetMapping("/all")
+    @PostMapping("/all")
     @Operation(summary = "Получение всех документов ГПЗУ")
     public ResponseEntity<Page<UplpDoc>> getAllUplpDocs(
             @PageableDefault(direction = Sort.Direction.ASC, sort = "uplpDocId") Pageable pageable
