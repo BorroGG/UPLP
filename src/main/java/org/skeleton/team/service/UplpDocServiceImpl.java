@@ -199,6 +199,16 @@ public class UplpDocServiceImpl implements UplpDocService {
         uplpDocConverter.convertUplpDocsToXmlStream(simpleDocs, outputStream);
     }
 
+    @Override
+    public UplpDoc changeFileName(Long id, String fileName) {
+        UplpDoc uplpDoc = uplpDocRepository.findById(id).orElse(null);
+        if (uplpDoc != null) {
+            uplpDoc.setRecordNo(fileName);
+            return uplpDocRepository.save(uplpDoc);
+        }
+        return null;
+    }
+
     private List<UplpDoc> parseFile(String fileName, Date loadTime, File file) {
         StringBuilder parseErrors = new StringBuilder();
         List<UplpDoc> uplpDocs;

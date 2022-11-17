@@ -77,4 +77,12 @@ public interface UplpDocService {
      * @param outputStream поток данных ответа
      */
     void setUplpDocsToXmlResponse(List<Long> ids, OutputStream outputStream);
+
+    /**
+     * Обновить имя файла.
+     * @param id Идентификатор документа ГПЗУ
+     * @param fileName новое наименвоание
+     * @return документ ГПЗУ
+     */
+    UplpDoc changeFileName(Long id, String fileName);
 }

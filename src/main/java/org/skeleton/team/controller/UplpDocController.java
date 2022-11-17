@@ -53,6 +53,26 @@ public class UplpDocController {
     }
 
     /**
+     * Обновить имя файла.
+     * @param id Идентификатор документа ГПЗУ
+     * @param filename новое наименвоание
+     * @return документ ГПЗУ
+     */
+    @GetMapping("changeFileName/{id}")
+    @Operation(summary = "Обновить имя файла")
+    public ResponseEntity<UplpDoc> changeFileName(
+            @Parameter(description = "Идентификатор документа ГПЗУ", required = true)
+            @PathVariable final Long id,
+            @RequestParam String filename
+    ) {
+        UplpDoc doc = uplpDocService.changeFileName(id, filename);
+        if (doc != null) {
+            return ResponseEntity.ok(doc);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    /**
      * Получение нескольких документов ГПЗУ по ИД.
      * @param ids Идентификаторы документов ГПЗУ
      * @return документы ГПЗУ
