@@ -11,8 +11,6 @@ import org.skeleton.team.entity.UplpSimpleDoc;
 import org.skeleton.team.service.UplpDocService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -96,9 +94,7 @@ public class UplpDocController {
      */
     @PostMapping("/all")
     @Operation(summary = "Получение всех документов ГПЗУ")
-    public ResponseEntity<Page<UplpDoc>> getAllUplpDocs(
-            @PageableDefault(direction = Sort.Direction.ASC, sort = "uplpDocId") Pageable pageable
-            ) {
+    public ResponseEntity<Page<UplpDoc>> getAllUplpDocs( Pageable pageable) {
         return ResponseEntity.ok(uplpDocService.getAllUplpDocs(pageable));
     }
 
